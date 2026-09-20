@@ -1,4 +1,88 @@
-.sidebar { background: #12213a; color: white; padding: 24px 14px; min-height: 100vh; }
-.sidebar a { display: block; padding: 11px 14px; border-radius: 10px; color: #cbd5e1; margin: 4px 0; }
-.sidebar a.active, .sidebar a:hover { color: white; background: #263e63; }
-@media(max-width: 800px) { .sidebar { min-height: auto; } .sidebar nav { display: flex; overflow-x: auto; } .sidebar a { white-space: nowrap; } }
+.sidebar {
+  background: #12213a;
+  color: white;
+  padding: 24px 14px;
+  height: 100vh;
+  box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: #cbd5e1;
+  margin: 0;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+.nav-item span {
+  line-height: 1.2;
+}
+.nav-item.active,
+.nav-item:hover {
+  color: white;
+  background: #263e63;
+}
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.sidebar-close {
+  display: none;
+}
+@media (max-width: 800px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(88vw, 280px);
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-110%);
+    transition: transform 0.25s ease;
+    padding: 18px 14px;
+  }
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+  .sidebar-header {
+    margin-bottom: 16px;
+  }
+  .sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .sidebar nav {
+    display: flex;
+    flex-direction: column;
+  }
+  .nav-item {
+    white-space: normal;
+  }
+}

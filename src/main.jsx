@@ -7,4 +7,10 @@ import './styles/layout.css'
 import './styles/sidebar.css'
 import './styles/header.css'
 import './styles/components.css'
-createRoot(document.getElementById('root')).render(<React.StrictMode><BrowserRouter><App /></BrowserRouter></React.StrictMode>)
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+)

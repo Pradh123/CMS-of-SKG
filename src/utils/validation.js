@@ -1,1 +1,3 @@
-export function isRequired(value) { return Boolean(String(value ?? '').trim()) }
+export function isRequired(value) {
+  return Boolean(String(value ?? '').trim())
+}

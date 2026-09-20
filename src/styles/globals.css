@@ -1,14 +1,23 @@
-@import "tailwindcss";
-@import "@fontsource/sora/400.css";
-@import "@fontsource/sora/500.css";
-@import "@fontsource/sora/600.css";
-@import "@fontsource/sora/700.css";
-@import "@fontsource/sora/800.css";
+@import 'tailwindcss';
+@import '@fontsource/sora/400.css';
+@import '@fontsource/sora/500.css';
+@import '@fontsource/sora/600.css';
+@import '@fontsource/sora/700.css';
+@import '@fontsource/sora/800.css';
 
 /* Change --font-sans here to update the font across the entire admin app. */
 @theme {
-  --font-sans: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Sora', ui-sans-serif, system-ui, sans-serif;
 }
 
-:root { font-family: var(--font-sans); color: #172033; background: #f6f8fc; }
-button, input, textarea, select { font: inherit; }
+:root {
+  font-family: var(--font-sans);
+  color: #172033;
+  background: #f6f8fc;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}

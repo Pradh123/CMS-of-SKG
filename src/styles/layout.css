@@ -1,4 +1,50 @@
-.admin-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0,1fr); }
-.admin-main { min-width: 0; }
-.admin-content { max-width: 1440px; margin: auto; padding: 32px; }
-@media(max-width: 800px) { .admin-shell { display: block; } .admin-content { padding: 20px; } }
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+body {
+  overflow: hidden;
+}
+
+.admin-shell {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  overflow: hidden;
+}
+.admin-main {
+  min-width: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.admin-content {
+  flex: 1;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+@media (max-width: 800px) {
+  body {
+    overflow: auto;
+  }
+  .admin-shell {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  .admin-main {
+    height: auto;
+    min-height: 100vh;
+  }
+  .admin-content {
+    padding: 20px;
+    overflow-y: visible;
+  }
+}
