@@ -1,0 +1,1 @@
+export default function Select({ label, options = [], ...props }) { return <label className="block text-sm font-medium space-y-1">{label && <span>{label}</span>}<select className="field" {...props}>{options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label> }

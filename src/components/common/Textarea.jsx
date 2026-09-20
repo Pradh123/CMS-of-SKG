@@ -1,0 +1,1 @@
+export default function Textarea({ label, ...props }) { return <label className="block text-sm font-medium space-y-1">{label && <span>{label}</span>}<textarea className="field min-h-28" {...props} /></label> }

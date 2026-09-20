@@ -1,0 +1,4 @@
+.card { background: white; border: 1px solid #e5eaf2; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px #17203306; }
+.field { width: 100%; border: 1px solid #d9e0eb; border-radius: 9px; padding: 10px 12px; background: white; outline-color: #2563eb; }
+.btn { background: #2563eb; color: white; border-radius: 9px; padding: 10px 16px; cursor: pointer; }
+.btn-secondary { background: #eef2f7; color: #24324a; }

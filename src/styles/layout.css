@@ -1,0 +1,4 @@
+.admin-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0,1fr); }
+.admin-main { min-width: 0; }
+.admin-content { max-width: 1440px; margin: auto; padding: 32px; }
+@media(max-width: 800px) { .admin-shell { display: block; } .admin-content { padding: 20px; } }

@@ -1,0 +1,4 @@
+.sidebar { background: #12213a; color: white; padding: 24px 14px; min-height: 100vh; }
+.sidebar a { display: block; padding: 11px 14px; border-radius: 10px; color: #cbd5e1; margin: 4px 0; }
+.sidebar a.active, .sidebar a:hover { color: white; background: #263e63; }
+@media(max-width: 800px) { .sidebar { min-height: auto; } .sidebar nav { display: flex; overflow-x: auto; } .sidebar a { white-space: nowrap; } }

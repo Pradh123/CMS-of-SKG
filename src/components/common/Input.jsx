@@ -1,0 +1,1 @@
+export default function Input({ label, id, ...props }) { return <label className="block text-sm font-medium space-y-1">{label && <span>{label}</span>}<input id={id} className="field" {...props} /></label> }
