@@ -97,15 +97,21 @@
 .area-table small { display: block; margin-top: 2px; font-size: 12px; }
 .area-table code { display: inline; border-radius: 5px; padding: 3px 6px; background: #f4f8fc; color: #0065a9; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; line-height: 1.6; white-space: normal; overflow-wrap: anywhere; }
 .seo-title-cell { line-height: 1.45; }
-.area-status-stack { display: flex; min-width: 90px; flex-direction: column; gap: 2px; }
-.area-badge { display: inline-flex; min-width: 90px; height: 20px; align-items: center; justify-content: center; border-radius: 999px; padding: 0 10px; font-size: 11px; font-weight: 600; }
-.area-badge.active { background: #eaf5da; color: #527f00; }
-.area-badge.inactive { background: #f1f5f9; color: #64748b; }
-.area-badge.published { background: #e2f0fb; color: #00639f; }
-.area-badge.draft { background: #fff0d5; color: #9a5d00; }
+.area-status-stack { display: flex; min-width: 94px; flex-direction: column; align-items: flex-start; gap: 6px; padding: 3px 0; }
+.area-badge { display: inline-flex; min-width: 94px; min-height: 28px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 999px; padding: 5px 12px; font-size: 11px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+.area-badge.active { border-color: #d4e9b9; background: #eaf5da; color: #527f00; }
+.area-badge.inactive { border-color: #e2e8f0; background: #f1f5f9; color: #64748b; }
+.area-badge.published { border-color: #c9e3f5; background: #e2f0fb; color: #00639f; }
+.area-badge.draft { border-color: #f2d9a7; background: #fff0d5; color: #9a5d00; }
 .updated-cell { max-width: 82px; line-height: 1.5; }
 .area-edit-btn { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; background: #0876bc; color: white; box-shadow: 0 3px 7px #075e9838; transition: transform .15s, background .15s; }
 .area-edit-btn:hover { transform: translateY(-1px); background: #065f99; }
+.cms-seo-table td:first-child { width: 20%; }
+.cms-seo-table td:nth-child(2) { width: 22%; }
+.cms-seo-table td:nth-child(3) { width: 25%; }
+.cms-row-actions { display: flex; align-items: center; gap: 7px; }
+.cms-delete-btn { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; background: #fff0ef; color: #c23d35; cursor: pointer; transition: transform .15s, background .15s; }
+.cms-delete-btn:hover { transform: translateY(-1px); background: #fee2e2; }
 .area-empty { display: grid; min-height: 230px; place-items: center; align-content: center; gap: 8px; color: #8190a5; text-align: center; }
 .area-empty a { color: #0876bc; font-size: 13px; font-weight: 600; }
 
@@ -254,4 +260,66 @@
   .seo-section-heading { align-items: flex-start; }
   .seo-content-section .rte-field { margin-left: 14px; margin-right: 14px; }
   .seo-upload-layout { grid-template-columns: 1fr; padding: 18px; }
+}
+
+/* ChatGPT prompt workspace */
+.prompt-page { width: min(100%, 1220px); margin: 0 auto; }
+.prompt-page-header { margin-bottom: 24px; }
+.prompt-page-header h1 { margin-top: 6px; color: #101c2d; font-size: clamp(25px, 3vw, 34px); font-weight: 700; letter-spacing: -.025em; }
+.prompt-page-header > p { max-width: 900px; margin-top: 8px; color: #60758f; font-size: 15px; line-height: 1.7; }
+.prompt-kicker { display: inline-flex; align-items: center; gap: 6px; color: #0873b7; font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.prompt-guide { padding: 0; overflow: hidden; }
+.prompt-guide-title { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #e4eaf1; padding: 17px 24px; background: #fafcfe; }
+.prompt-guide-title > span, .prompt-builder-title > span { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 10px; background: #e8f3fd; color: #0875bd; }
+.prompt-guide-title h2, .prompt-builder-title h2 { font-size: 17px; font-weight: 700; }
+.prompt-guide-title p, .prompt-builder-title p { margin-top: 2px; color: #7a899c; font-size: 11px; }
+.prompt-guide ol { display: grid; gap: 9px; padding: 18px 28px 20px 48px; color: #526b8d; font-size: 13px; line-height: 1.55; }
+.prompt-guide strong { color: #314b69; }
+.prompt-tabs { display: flex; gap: 10px; margin: 22px 0; overflow-x: auto; scrollbar-width: thin; }
+.prompt-tabs button { display: inline-flex; min-height: 44px; flex: 0 0 auto; align-items: center; gap: 7px; border: 1px solid #d8e3ee; border-radius: 999px; padding: 0 20px; background: white; color: #20364f; font-size: 14px; font-weight: 500; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
+.prompt-tabs button:hover { border-color: #1680c7; color: #0873b7; }
+.prompt-tabs button.active { border-color: #1179c2; background: #1179c2; color: white; box-shadow: 0 4px 10px #0d6eae24; }
+.prompt-builder { padding: 0; overflow: hidden; }
+.prompt-builder-head { display: grid; grid-template-columns: minmax(210px, .75fr) minmax(480px, 1.5fr) auto; align-items: end; gap: 20px; border-bottom: 1px solid #e4eaf1; padding: 20px 24px; }
+.prompt-builder-title { display: flex; align-items: center; gap: 12px; align-self: center; }
+.prompt-inputs { display: grid; grid-template-columns: repeat(3, minmax(130px, 1fr)); gap: 12px; }
+.prompt-inputs-area, .prompt-inputs-blog { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+.prompt-inputs-route label:last-child { grid-column: 3; }
+.prompt-inputs label { display: flex; min-width: 0; flex-direction: column; gap: 6px; }
+.prompt-inputs label > span { color: #647a94; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.prompt-inputs input, .prompt-inputs select { width: 100%; min-width: 0; height: 44px; border: 1px solid #d8e3ee; border-radius: 9px; padding: 0 12px; background: #f8fafc; color: #22364e; outline: none; }
+.prompt-inputs input:focus, .prompt-inputs select:focus { border-color: #2181c4; box-shadow: 0 0 0 3px #2181c415; }
+.prompt-copy-btn { display: inline-flex; height: 42px; align-items: center; justify-content: center; gap: 7px; border-radius: 999px; padding: 0 18px; background: #1179c2; color: white; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.prompt-copy-btn:hover { background: #0867a7; }
+.prompt-copy-btn.copied { background: #548607; }
+.prompt-preview { max-height: 620px; margin: 20px 24px; overflow: auto; border: 1px solid #d9e4ef; border-radius: 12px; padding: 22px; background: #f6f9fc; color: #0b2944; font: 13px/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; scrollbar-color: #b2c3d4 transparent; }
+.prompt-note { margin: 0 24px 22px; border: 1px solid #f0d69b; border-radius: 11px; padding: 14px 16px; background: #fff8e8; color: #815a13; font-size: 12px; line-height: 1.6; }
+
+@media (max-width: 1100px) {
+  .prompt-builder-head { grid-template-columns: 1fr auto; }
+  .prompt-builder-title { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .prompt-page-header { margin-bottom: 18px; }
+  .prompt-guide ol { padding-left: 42px; }
+  .prompt-builder-head { grid-template-columns: 1fr; padding: 18px; }
+  .prompt-builder-title { grid-column: auto; }
+  .prompt-inputs { grid-template-columns: 1fr 1fr; }
+  .prompt-inputs-route label:last-child { grid-column: auto; }
+  .prompt-inputs label:last-child { grid-column: 1 / -1; }
+  .prompt-copy-btn { width: 100%; }
+  .prompt-preview { max-height: 520px; margin: 16px 18px; padding: 17px; font-size: 12px; }
+  .prompt-note { margin: 0 18px 18px; }
+}
+@media (max-width: 480px) {
+  .prompt-page-header h1 { font-size: 24px; line-height: 1.25; }
+  .prompt-page-header > p { font-size: 13px; }
+  .prompt-guide-title { padding: 15px 16px; }
+  .prompt-guide ol { gap: 8px; padding: 15px 18px 18px 38px; font-size: 12px; }
+  .prompt-tabs { margin: 17px -2px; gap: 7px; }
+  .prompt-tabs button { min-height: 40px; padding: 0 14px; font-size: 12px; }
+  .prompt-inputs { grid-template-columns: 1fr; }
+  .prompt-inputs label:last-child { grid-column: auto; }
+  .prompt-preview { max-height: 450px; margin: 14px; padding: 14px; font-size: 11px; line-height: 1.65; }
+  .prompt-note { margin: 0 14px 14px; }
 }

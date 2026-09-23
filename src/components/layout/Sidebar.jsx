@@ -1,16 +1,14 @@
 import { NavLink } from 'react-router-dom'
 import { menu } from '../../config/menu.js'
 
-export default function Sidebar({ isOpen = true, onClose }) {
+export default function Sidebar({ isOpen = true, isCollapsed = false, onClose }) {
   return (
-    <aside className={`sidebar ${isOpen ? 'is-open' : ''}`}>
+    <aside className={`sidebar ${isOpen ? 'is-open' : ''} ${isCollapsed ? 'is-collapsed' : ''}`}>
       <div className="sidebar-header">
         <div className="flex items-center gap-3 px-3">
-          <img
-            src="/logo/skg-logo.png"
-            alt="SKG"
-            className="w-12 h-12 object-contain bg-white rounded-lg"
-          />
+          <span className="sidebar-logo-mark">
+            <img src="/logo/skg-logo.png" alt="SKG" className="sidebar-logo" />
+          </span>
           <strong>SKG Admin</strong>
         </div>
 
@@ -35,8 +33,9 @@ export default function Sidebar({ isOpen = true, onClose }) {
               end={item.path === '/'}
               onClick={onClose}
               className="nav-item"
+              title={isCollapsed ? item.label : undefined}
             >
-              <Icon size={18} />
+              <Icon size={18} aria-hidden="true" />
               <span>{item.label}</span>
             </NavLink>
           )

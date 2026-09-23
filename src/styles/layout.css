@@ -13,6 +13,10 @@ body {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
   overflow: hidden;
+  transition: grid-template-columns .28s ease;
+}
+.admin-shell.sidebar-collapsed {
+  grid-template-columns: 82px minmax(0, 1fr);
 }
 .admin-main {
   min-width: 0;
@@ -38,6 +42,9 @@ body {
     height: auto;
     min-height: 100vh;
     overflow: visible;
+  }
+  .admin-shell.sidebar-collapsed {
+    display: block;
   }
   .admin-main {
     height: auto;

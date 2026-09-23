@@ -5,6 +5,7 @@ import Header from './Header.jsx'
 
 export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     const handleResize = () => {
@@ -18,13 +19,17 @@ export default function AdminLayout() {
   }, [])
 
   return (
-    <div className="admin-shell">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+    <div className={`admin-shell ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <Sidebar isOpen={isSidebarOpen} isCollapsed={isSidebarCollapsed} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="admin-main">
         <Header
-          onToggleSidebar={() => setIsSidebarOpen(current => !current)}
+          onToggleSidebar={() => {
+            if (window.innerWidth <= 800) setIsSidebarOpen(current => !current)
+            else setIsSidebarCollapsed(current => !current)
+          }}
           isSidebarOpen={isSidebarOpen}
+          isSidebarCollapsed={isSidebarCollapsed}
         />
         <main className="admin-content">
           <Outlet />

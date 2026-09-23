@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
 
-export default function Header({ onToggleSidebar, isSidebarOpen }) {
+export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollapsed }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const menuRef = useRef(null)
@@ -79,7 +79,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
           className="sidebar-toggle"
           onClick={onToggleSidebar}
           aria-label="Toggle sidebar"
-          aria-pressed={isSidebarOpen}
+          aria-pressed={isSidebarOpen || isSidebarCollapsed}
         >
           <Menu size={20} />
         </button>
