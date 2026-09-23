@@ -19,6 +19,8 @@ import PromptEdit from '../pages/cms/chatgpt-prompts/PromptEdit.jsx'
 import ProfilePage from '../pages/profile/ProfilePage.jsx'
 import SettingsPage from '../pages/profile/SettingsPage.jsx'
 import ChangePasswordPage from '../pages/profile/ChangePasswordPage.jsx'
+import LeadList from '../pages/leads/LeadList.jsx'
+import LeadView from '../pages/leads/LeadView.jsx'
 export default function AppRoutes() {
   const { user } = useAuth()
   return (
@@ -30,6 +32,8 @@ export default function AppRoutes() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
+        <Route path="/leads" element={<LeadList />} />
+        <Route path="/leads/:id" element={<LeadView />} />
         <Route path="/cms/area-seo" element={<AreaSEOList />} />
         <Route path="/cms/area-seo/create" element={<AreaSEOCreate />} />
         <Route path="/cms/area-seo/:id/edit" element={<AreaSEOEdit />} />

@@ -1,4 +1,4 @@
-import CmsForm from '../CmsForm.jsx'
+import AreaSEOForm from './AreaSEOForm.jsx'
 export default function AreaSEOEdit() {
-  return <CmsForm title="Area SEO" storageKey="area-seo" mode="edit" />
+  return <AreaSEOForm mode="edit" />
 }
