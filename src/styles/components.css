@@ -13,6 +13,10 @@
   background: white;
   outline-color: #2563eb;
 }
+.form-select-wrap { position: relative; display: block; width: 100%; }
+.form-select { appearance: none; padding-right: 42px !important; cursor: pointer; }
+.form-select-icon { position: absolute; top: 50%; right: 13px; color: #68839b; pointer-events: none; transform: translateY(-50%); }
+.field:focus { border-color: #1680c7; outline: 0; box-shadow: 0 0 0 3px #2582c815; }
 .btn {
   background: #2563eb;
   color: white;
@@ -35,6 +39,7 @@
 .form-label { color: #526b8d; font-size: 12px; font-weight: 600; letter-spacing: .045em; text-transform: uppercase; }
 .field-hint { color: #6b7280; font-size: 12px; font-weight: 400; line-height: 1.5; }
 .seo-page-form .field { min-height: 44px; background: #f8fafc; }
+.seo-page-form select.field { appearance: none; padding-right: 42px; cursor: pointer; }
 .seo-page-form textarea.field { resize: vertical; }
 .file-field { padding: 7px; color: #64748b; }
 .file-field::file-selector-button { border: 0; border-radius: 6px; padding: 6px 10px; margin-right: 10px; background: #e8f1fb; color: #0867ad; cursor: pointer; }

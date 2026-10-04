@@ -21,3 +21,12 @@ textarea,
 select {
   font: inherit;
 }
+
+button,
+a,
+input[type='button'],
+input[type='submit'],
+input[type='reset'],
+[role='button'] {
+  cursor: pointer;
+}

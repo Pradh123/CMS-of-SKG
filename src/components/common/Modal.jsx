@@ -10,7 +10,7 @@ export default function Modal({ open, title, children, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="card max-w-lg w-full"
+        className="card max-w-3xl w-full"
         onClick={event => event.stopPropagation()}
       >
         <div className="flex justify-between mb-4">
