@@ -394,7 +394,7 @@ export default function CrudFormPage({ config }) {
                 </div>
               </div>
             </div>
-            <div className="grid gap-x-6 gap-y-5 px-5 py-6 sm:grid-cols-2 sm:px-7 lg:px-8 lg:py-8">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 px-5 py-6 sm:grid-cols-2 sm:px-7 lg:px-8 lg:py-8">
               {section.fields.map(field => {
                 const runtimeField = withLinkedOptions(config, field, displayValues[field.name])
                 return (

@@ -5,10 +5,12 @@ import Pagination from '../../components/common/Pagination.jsx'
 import { formatLeadDate, leadStatuses, readLeads, setLeadStatus } from './leadUtils.js'
 import LeadStatusDropdown from './LeadStatusDropdown.jsx'
 import { FormSelect } from '../../components/common/FormControls.jsx'
+import useAuth from '../../hooks/useAuth.js'
 
 const PAGE_SIZE = 10
 
 export default function LeadList() {
+  const { hasPermission } = useAuth()
   const [leads, setLeads] = useState(readLeads)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
@@ -120,6 +122,7 @@ export default function LeadList() {
                   <td className="lead-date">{formatLeadDate(lead.createdAt)}</td>
                   <td>
                     <LeadStatusDropdown
+                      disabled={!hasPermission('/leads', 'edit')}
                       value={lead.status || 'New'}
                       onChange={status => changeStatus(lead.id, status)}
                     />
@@ -145,6 +148,49 @@ export default function LeadList() {
             </div>
           )}
         </div>
+        {!!visible.length && (
+          <div className="lead-mobile-list">
+            {visible.map(lead => (
+              <article className="lead-mobile-card" key={lead.id}>
+                <div className="lead-mobile-heading">
+                  <div>
+                    <strong>{lead.name || 'Unknown customer'}</strong>
+                    <span>{lead.service || 'General enquiry'}</span>
+                  </div>
+                  <LeadStatusDropdown
+                    disabled={!hasPermission('/leads', 'edit')}
+                    value={lead.status || 'New'}
+                    onChange={status => changeStatus(lead.id, status)}
+                  />
+                </div>
+                <div className="lead-mobile-contact">
+                  {lead.phone && (
+                    <a href={`tel:${lead.phone}`}>
+                      <Phone size={15} /> {lead.phone}
+                    </a>
+                  )}
+                  {lead.email && (
+                    <a href={`mailto:${lead.email}`}>
+                      <Mail size={15} /> {lead.email}
+                    </a>
+                  )}
+                </div>
+                <p>{lead.message || 'No message provided.'}</p>
+                {(lead.pickup || lead.destination) && (
+                  <small>
+                    {lead.pickup || '—'} → {lead.destination || '—'}
+                  </small>
+                )}
+                <footer>
+                  <time>{formatLeadDate(lead.createdAt)}</time>
+                  <Link className="lead-mobile-view" to={`/leads/${lead.id}`}>
+                    View lead <ChevronRight size={17} />
+                  </Link>
+                </footer>
+              </article>
+            ))}
+          </div>
+        )}
         <Pagination page={page} pages={pages} onChange={setPage} />
       </section>
     </div>

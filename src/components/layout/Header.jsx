@@ -1,13 +1,26 @@
-import { ChevronDown, LogOut, Mail, Menu, Settings, ShieldCheck, UserCircle2 } from 'lucide-react'
+import {
+  ChevronDown,
+  LogOut,
+  Mail,
+  Menu,
+  Settings,
+  ShieldCheck,
+  UserCircle2,
+  UsersRound,
+  Undo2,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
 
 export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollapsed }) {
-  const { user, currentUser, logout } = useAuth()
+  const { user, currentUser, logout, isSuperAdmin, isImpersonating, stopImpersonating } = useAuth()
   const navigate = useNavigate()
   const menuRef = useRef(null)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const closeTimerRef = useRef(null)
+  const [isMenuPinned, setIsMenuPinned] = useState(false)
+  const [isMenuHovered, setIsMenuHovered] = useState(false)
+  const isMenuOpen = isMenuPinned || isMenuHovered
 
   const formatDisplayName = value => {
     if (!value) return 'Admin User'
@@ -43,33 +56,46 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
   useEffect(() => {
     const handleClickOutside = event => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsMenuOpen(false)
+        setIsMenuPinned(false)
+        setIsMenuHovered(false)
+      }
+    }
+    const handleEscape = event => {
+      if (event.key === 'Escape') {
+        setIsMenuPinned(false)
+        setIsMenuHovered(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('pointerdown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('pointerdown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+      window.clearTimeout(closeTimerRef.current)
+    }
   }, [])
 
   const handleLogout = () => {
     logout()
-    setIsMenuOpen(false)
+    setIsMenuPinned(false)
+    setIsMenuHovered(false)
     navigate('/login', { replace: true })
   }
 
-  const handleMenuMouseEnter = () => {
-    if (window.innerWidth > 800) {
-      setIsMenuOpen(true)
-    }
+  const openOnHover = () => {
+    window.clearTimeout(closeTimerRef.current)
+    setIsMenuHovered(true)
   }
-
-  const handleMenuMouseLeave = () => {
-    if (window.innerWidth > 800) {
-      setIsMenuOpen(false)
-    }
+  const closeAfterHover = () => {
+    window.clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = window.setTimeout(() => setIsMenuHovered(false), 180)
   }
-
-  const closeMenu = () => setIsMenuOpen(false)
+  const closeMenu = () => {
+    setIsMenuPinned(false)
+    setIsMenuHovered(false)
+  }
+  const avatar = currentUser?.photo ? <img src={currentUser.photo} alt="" /> : initials
 
   return (
     <header className="topbar">
@@ -83,36 +109,40 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
         >
           <Menu size={20} />
         </button>
-        <span className="font-semibold">Content Management</span>
+        <span className="topbar-title font-semibold">Content Management</span>
+        {isImpersonating && (
+          <span className="hidden rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 sm:inline-flex">
+            Viewing as {displayName}
+          </span>
+        )}
       </div>
 
       <div
         ref={menuRef}
         className={`profile-menu ${isMenuOpen ? 'is-open' : ''}`}
-        onMouseEnter={handleMenuMouseEnter}
-        onMouseLeave={handleMenuMouseLeave}
-        onFocus={handleMenuMouseEnter}
-        onBlur={handleMenuMouseLeave}
+        onMouseEnter={openOnHover}
+        onMouseLeave={closeAfterHover}
       >
         <button
           type="button"
           className="profile-trigger"
           aria-label="Open profile menu"
           aria-expanded={isMenuOpen}
+          aria-controls="profile-dropdown"
           onClick={() => {
-            if (window.innerWidth <= 800) {
-              setIsMenuOpen(current => !current)
-            }
+            if (isMenuPinned) closeMenu()
+            else setIsMenuPinned(true)
           }}
         >
-          <span className="profile-avatar desktop-avatar">{initials}</span>
+          <span className="profile-avatar desktop-avatar">{avatar}</span>
+          <span className="profile-avatar mobile-avatar">{avatar}</span>
           <span className="profile-name">{displayName}</span>
           <ChevronDown size={16} className="profile-caret desktop-caret" />
         </button>
 
-        <div className="profile-dropdown">
+        <div id="profile-dropdown" className="profile-dropdown">
           <div className="profile-summary">
-            <span className="profile-avatar large">{initials}</span>
+            <span className="profile-avatar large">{avatar}</span>
             <div>
               <strong>{displayName}</strong>
               <small>{currentUser?.role || 'Administrator'}</small>
@@ -125,10 +155,37 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
           </div>
 
           <div className="profile-links">
-            <NavLink to="/profile" className="profile-item" onClick={closeMenu}>
-              <UserCircle2 size={18} />
-              <span>Profile</span>
-            </NavLink>
+            {isSuperAdmin ? (
+              <>
+                <NavLink to="/users" className="profile-item" onClick={closeMenu}>
+                  <UsersRound size={18} />
+                  <span>Users</span>
+                </NavLink>
+                <NavLink to="/permissions" className="profile-item" onClick={closeMenu}>
+                  <ShieldCheck size={18} />
+                  <span>Permissions</span>
+                </NavLink>
+              </>
+            ) : !isImpersonating ? (
+              <NavLink to="/profile" className="profile-item" onClick={closeMenu}>
+                <UserCircle2 size={18} />
+                <span>My profile</span>
+              </NavLink>
+            ) : null}
+            {isImpersonating && (
+              <button
+                type="button"
+                className="profile-item text-amber-700"
+                onClick={() => {
+                  stopImpersonating()
+                  closeMenu()
+                  window.setTimeout(() => navigate('/users', { replace: true }), 0)
+                }}
+              >
+                <Undo2 size={18} />
+                <span>Return to Super Admin</span>
+              </button>
+            )}
             <NavLink to="/settings" className="profile-item" onClick={closeMenu}>
               <Settings size={18} />
               <span>Settings</span>

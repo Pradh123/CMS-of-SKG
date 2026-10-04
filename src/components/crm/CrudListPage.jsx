@@ -15,6 +15,7 @@ import {
 import PageHeader from '../layout/PageHeader.jsx'
 import { FormSelect } from '../common/FormControls.jsx'
 import useCrudRecords from '../../hooks/useCrudRecords.js'
+import useAuth from '../../hooks/useAuth.js'
 import {
   ConfirmDialog,
   EmptyIllustration,
@@ -50,6 +51,7 @@ function columnDescriptor(column, fields, record) {
 
 export default function CrudListPage({ config }) {
   const { records, deleteRecord } = useCrudRecords(config)
+  const { hasPermission } = useAuth()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('')
   const [page, setPage] = useState(1)
@@ -110,6 +112,11 @@ export default function CrudListPage({ config }) {
   const firstVisible = filteredRecords.length ? (page - 1) * pageSize + 1 : 0
   const lastVisible = Math.min(page * pageSize, filteredRecords.length)
   const basePath = cleanPath(config?.path)
+  const canCreate = hasPermission(basePath, 'create')
+  const canEdit = hasPermission(basePath, 'edit')
+  const canDelete = hasPermission(basePath, 'delete')
+  const canViewDetails = Boolean(config.view && hasPermission(basePath, 'view'))
+  const hasRowActions = canViewDetails || canEdit || canDelete
 
   useEffect(() => setPage(1), [query, filter, pageSize, config?.key])
   useEffect(() => {
@@ -154,12 +161,14 @@ export default function CrudListPage({ config }) {
           `Manage all ${String(config.plural || 'records').toLowerCase()} in one place.`
         }
         action={
-          <Link
-            to={`${basePath}/create`}
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 px-5 text-sm font-semibold text-white shadow-lg shadow-sky-200 transition hover:brightness-105 focus:outline-none focus:ring-4 focus:ring-sky-100"
-          >
-            <Plus size={17} /> {config.addLabel || `Add ${config.singular || 'Record'}`}
-          </Link>
+          canCreate ? (
+            <Link
+              to={`${basePath}/create`}
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 px-5 text-sm font-semibold text-white shadow-lg shadow-sky-200 transition hover:brightness-105 focus:outline-none focus:ring-4 focus:ring-sky-100"
+            >
+              <Plus size={17} /> {config.addLabel || `Add ${config.singular || 'Record'}`}
+            </Link>
+          ) : null
         }
       />
 
@@ -251,12 +260,14 @@ export default function CrudListPage({ config }) {
                         {column.label}
                       </th>
                     ))}
-                    <th
-                      scope="col"
-                      className="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500"
-                    >
-                      Actions
-                    </th>
+                    {hasRowActions && (
+                      <th
+                        scope="col"
+                        className="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500"
+                      >
+                        Actions
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -279,7 +290,7 @@ export default function CrudListPage({ config }) {
                             {column.primary ? (
                               <div className="min-w-0">
                                 <div className="font-bold text-slate-800">
-                                  {config.view ? (
+                                  {canViewDetails ? (
                                     <Link
                                       className="transition hover:text-sky-700"
                                       to={`${basePath}/${record.id}`}
@@ -302,37 +313,43 @@ export default function CrudListPage({ config }) {
                           </td>
                         )
                       })}
-                      <td className="whitespace-nowrap px-5 py-4">
-                        <div className="flex justify-end gap-1.5">
-                          {config.view && (
-                            <Link
-                              to={`${basePath}/${record.id}`}
-                              className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-sky-50 hover:text-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300"
-                              title="View"
-                              aria-label={`View ${getRecordName(config, record)}`}
-                            >
-                              <Eye size={16} />
-                            </Link>
-                          )}
-                          <Link
-                            to={`${basePath}/${record.id}/edit`}
-                            className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-amber-50 hover:text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
-                            title="Edit"
-                            aria-label={`Edit ${getRecordName(config, record)}`}
-                          >
-                            <Pencil size={16} />
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => setDeleting(record)}
-                            className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-300"
-                            title="Delete"
-                            aria-label={`Delete ${getRecordName(config, record)}`}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+                      {hasRowActions && (
+                        <td className="whitespace-nowrap px-5 py-4">
+                          <div className="flex justify-end gap-1.5">
+                            {canViewDetails && (
+                              <Link
+                                to={`${basePath}/${record.id}`}
+                                className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-sky-50 hover:text-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                                title="View"
+                                aria-label={`View ${getRecordName(config, record)}`}
+                              >
+                                <Eye size={16} />
+                              </Link>
+                            )}
+                            {canEdit && (
+                              <Link
+                                to={`${basePath}/${record.id}/edit`}
+                                className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-amber-50 hover:text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                title="Edit"
+                                aria-label={`Edit ${getRecordName(config, record)}`}
+                              >
+                                <Pencil size={16} />
+                              </Link>
+                            )}
+                            {canDelete && (
+                              <button
+                                type="button"
+                                onClick={() => setDeleting(record)}
+                                className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                                title="Delete"
+                                aria-label={`Delete ${getRecordName(config, record)}`}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -366,7 +383,7 @@ export default function CrudListPage({ config }) {
                     ))}
                   </div>
                   <div className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
-                    {config.view && (
+                    {canViewDetails && (
                       <Link
                         to={`${basePath}/${record.id}`}
                         className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600"
@@ -374,20 +391,24 @@ export default function CrudListPage({ config }) {
                         <Eye size={15} /> View
                       </Link>
                     )}
-                    <Link
-                      to={`${basePath}/${record.id}/edit`}
-                      className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600"
-                    >
-                      <Pencil size={15} /> Edit
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => setDeleting(record)}
-                      className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-rose-100 text-rose-600"
-                      aria-label={`Delete ${getRecordName(config, record)}`}
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    {canEdit && (
+                      <Link
+                        to={`${basePath}/${record.id}/edit`}
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600"
+                      >
+                        <Pencil size={15} /> Edit
+                      </Link>
+                    )}
+                    {canDelete && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleting(record)}
+                        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-rose-100 text-rose-600"
+                        aria-label={`Delete ${getRecordName(config, record)}`}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}
@@ -417,14 +438,14 @@ export default function CrudListPage({ config }) {
               >
                 Clear filters
               </button>
-            ) : (
+            ) : canCreate ? (
               <Link
                 to={`${basePath}/create`}
                 className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-sky-600 px-4 text-sm font-semibold text-white"
               >
                 <Plus size={16} /> {config.addLabel || `Add ${config.singular || 'Record'}`}
               </Link>
-            )}
+            ) : null}
           </div>
         )}
 

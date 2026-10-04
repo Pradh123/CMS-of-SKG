@@ -677,6 +677,10 @@
 }
 .lead-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.lead-mobile-list {
+  display: none;
 }
 .lead-table {
   width: 100%;
@@ -1102,6 +1106,109 @@
   .leads-tools select {
     width: 100%;
     height: 40px;
+  }
+  .lead-filter-select,
+  .lead-filter-trigger {
+    width: 100%;
+  }
+  .lead-table {
+    display: none;
+  }
+  .lead-mobile-list {
+    display: grid;
+    gap: 10px;
+    padding: 0 12px;
+  }
+  .lead-mobile-card {
+    min-width: 0;
+    border: 1px solid #dce5ee;
+    border-radius: 13px;
+    padding: 13px;
+    background: #fbfdff;
+  }
+  .lead-mobile-heading {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .lead-mobile-heading > div {
+    min-width: 0;
+  }
+  .lead-mobile-heading strong,
+  .lead-mobile-heading span {
+    display: block;
+  }
+  .lead-mobile-heading strong {
+    color: #101c2d;
+    font-size: 14px;
+  }
+  .lead-mobile-heading span {
+    margin-top: 2px;
+    color: #71849b;
+    font-size: 11px;
+  }
+  .lead-mobile-heading .custom-status {
+    width: 122px;
+    flex: 0 0 122px;
+  }
+  .lead-mobile-heading .custom-status-trigger {
+    min-height: 38px;
+  }
+  .lead-mobile-contact {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .lead-mobile-contact a {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    overflow-wrap: anywhere;
+    color: #33617e;
+    font-size: 12px;
+  }
+  .lead-mobile-card > p {
+    display: -webkit-box;
+    margin-top: 12px;
+    overflow: hidden;
+    color: #536984;
+    font-size: 12px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  .lead-mobile-card > small {
+    display: block;
+    margin-top: 6px;
+    color: #71849b;
+    font-size: 11px;
+  }
+  .lead-mobile-card footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 13px;
+    border-top: 1px solid #e6edf3;
+    padding-top: 10px;
+  }
+  .lead-mobile-card time {
+    color: #8291a5;
+    font-size: 10px;
+  }
+  .lead-mobile-view {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 5px;
+    border-radius: 9px;
+    padding: 0 11px;
+    background: #0876bc;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
   }
   .lead-view-header {
     align-items: flex-start;

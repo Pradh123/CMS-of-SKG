@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, Menu as MenuIcon, UserRound } from 'lucide-react'
+import { ChevronDown, Menu as MenuIcon } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { menu } from '../../config/menu.js'
 import useAuth from '../../hooks/useAuth.js'
 
 export default function Sidebar({ isOpen = true, isCollapsed = false, onClose }) {
   const location = useLocation()
-  const { isSuperAdmin, userAccess } = useAuth()
+  const { isSuperAdmin, hasPermission } = useAuth()
   const [expanded, setExpanded] = useState({})
-  const visibleMenu = menu.filter(
-    item =>
-      (!item.superAdminOnly || isSuperAdmin) &&
-      (!item.path || isSuperAdmin || userAccess.includes(item.path))
-  )
+  const visibleMenu = menu.filter(item => {
+    if (item.superAdminOnly) return isSuperAdmin
+    if (item.path) return hasPermission(item.path, 'view')
+    return item.children?.some(child => hasPermission(child.path, 'view'))
+  })
 
   useEffect(() => {
     setExpanded(current => {
@@ -44,15 +44,6 @@ export default function Sidebar({ isOpen = true, isCollapsed = false, onClose })
       </div>
       <nav className="sidebar-nav">
         <p className="sidebar-section-label">Menu</p>
-        <NavLink
-          to="/profile"
-          onClick={onClose}
-          className="nav-item"
-          title={isCollapsed ? 'User' : undefined}
-        >
-          <UserRound size={18} aria-hidden="true" />
-          <span>User</span>
-        </NavLink>
         {visibleMenu.map(item => {
           const Icon = item.icon
           const isExpanded =
@@ -60,9 +51,7 @@ export default function Sidebar({ isOpen = true, isCollapsed = false, onClose })
             item.children?.some(child => child.path === location.pathname) ??
             false
           if (item.children) {
-            const children = item.children.filter(
-              child => isSuperAdmin || userAccess.includes(child.path)
-            )
+            const children = item.children.filter(child => hasPermission(child.path, 'view'))
             return (
               <div className="nav-group" key={item.label}>
                 <button

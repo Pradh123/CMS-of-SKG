@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import PageHeader from '../layout/PageHeader.jsx'
 import useCrudRecords from '../../hooks/useCrudRecords.js'
+import useAuth from '../../hooks/useAuth.js'
 import {
   formatPlainValue,
   getOptions,
@@ -55,9 +56,11 @@ export default function CrudViewPage({ config }) {
   const params = useParams()
   const id = params.id ?? params.recordId
   const { records } = useCrudRecords(config)
+  const { hasPermission } = useAuth()
   const sections = useMemo(() => getSections(config), [config])
   const record = records.find(item => String(item.id) === String(id))
   const basePath = cleanPath(config?.path)
+  const canEdit = hasPermission(basePath, 'edit')
 
   if (!config?.key || !config?.path) {
     return (
@@ -105,12 +108,14 @@ export default function CrudViewPage({ config }) {
               </span>
               <span className="sm:hidden">Back</span>
             </Link>
-            <Link
-              to={`${basePath}/${record.id}/edit`}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 px-4 text-sm font-semibold text-white shadow-lg shadow-sky-200 transition hover:brightness-105"
-            >
-              <Pencil size={16} /> Edit
-            </Link>
+            {canEdit && (
+              <Link
+                to={`${basePath}/${record.id}/edit`}
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 px-4 text-sm font-semibold text-white shadow-lg shadow-sky-200 transition hover:brightness-105"
+              >
+                <Pencil size={16} /> Edit
+              </Link>
+            )}
           </div>
         }
       />

@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import useAuth from '../../hooks/useAuth.js'
 import { ArrowLeft, Pencil, Printer, QrCode } from 'lucide-react'
 import PageHeader from '../../components/layout/PageHeader.jsx'
 import { STORAGE_PREFIX } from '../../config/constants.js'
@@ -30,6 +31,8 @@ function Detail({ label, children }) {
 }
 
 export default function InvoiceDocumentPage() {
+  const { hasPermission } = useAuth()
+  const canEdit = hasPermission('/invoices', 'edit')
   const { id } = useParams()
   const { records } = useCrudRecords(invoiceConfig)
   const invoice = records.find(item => String(item.id) === String(id))
@@ -73,12 +76,14 @@ export default function InvoiceDocumentPage() {
               >
                 <ArrowLeft size={16} /> Back
               </Link>
-              <Link
-                to={`/invoices/${invoice.id}/edit`}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-sm font-semibold text-sky-700 transition hover:bg-sky-100"
-              >
-                <Pencil size={16} /> Edit
-              </Link>
+              {canEdit && (
+                <Link
+                  to={`/invoices/${invoice.id}/edit`}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-sm font-semibold text-sky-700 transition hover:bg-sky-100"
+                >
+                  <Pencil size={16} /> Edit
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={() => window.print()}

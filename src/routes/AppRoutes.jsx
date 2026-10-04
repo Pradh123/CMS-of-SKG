@@ -44,6 +44,7 @@ import RegularTripFormPage from '../pages/trips/RegularTripFormPage.jsx'
 import RegularTripListPage from '../pages/trips/RegularTripListPage.jsx'
 import UserFormPage from '../pages/users/UserFormPage.jsx'
 import UsersPage from '../pages/users/UsersPage.jsx'
+import PermissionsPage from '../pages/permissions/PermissionsPage.jsx'
 import VehicleFormPage from '../pages/vehicles/VehicleFormPage.jsx'
 import VehicleListPage from '../pages/vehicles/VehicleListPage.jsx'
 import VehicleViewPage from '../pages/vehicles/VehicleViewPage.jsx'
@@ -54,6 +55,7 @@ const SUPER_ADMIN_ROUTES = [
   { path: '/users', Component: UsersPage },
   { path: '/users/create', Component: UserFormPage },
   { path: '/users/:id/edit', Component: UserFormPage },
+  { path: '/permissions', Component: PermissionsPage },
 ]
 
 const PANEL_ROUTES = [
@@ -168,8 +170,12 @@ const PANEL_ROUTES = [
 ]
 
 export default function AppRoutes() {
-  const { user, isSuperAdmin, userAccess } = useAuth()
-  const canAccess = path => isSuperAdmin || userAccess.includes(path)
+  const { user, isSuperAdmin, hasPermission } = useAuth()
+  const routeOperation = path => {
+    if (path.endsWith('/create')) return 'create'
+    if (path.endsWith('/edit')) return 'edit'
+    return 'view'
+  }
 
   return (
     <Routes>
@@ -179,7 +185,9 @@ export default function AppRoutes() {
       <Route element={user ? <AdminLayout /> : <Navigate to="/login" replace />}>
         <Route
           path="/"
-          element={canAccess('/') ? <Dashboard /> : <Navigate to="/no-access" replace />}
+          element={
+            hasPermission('/', 'view') ? <Dashboard /> : <Navigate to="/no-access" replace />
+          }
         />
 
         {SUPER_ADMIN_ROUTES.map(({ path, Component }) => (
@@ -194,11 +202,20 @@ export default function AppRoutes() {
           <Route
             key={path}
             path={path}
-            element={canAccess(access) ? <Component /> : <Navigate to="/no-access" replace />}
+            element={
+              hasPermission(access, routeOperation(path)) ? (
+                <Component />
+              ) : (
+                <Navigate to="/no-access" replace />
+              )
+            }
           />
         ))}
 
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route
+          path="/profile"
+          element={isSuperAdmin ? <Navigate to="/users" replace /> : <ProfilePage />}
+        />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
         <Route
