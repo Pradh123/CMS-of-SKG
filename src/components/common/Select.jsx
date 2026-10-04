@@ -1,19 +1,16 @@
-import { ChevronDown } from 'lucide-react'
+import { FormSelect } from './FormControls.jsx'
 
-export default function Select({ label, options = [], ...props }) {
+export default function Select({ label, options = [], className = '', ...props }) {
   return (
     <label className="block text-sm font-medium space-y-1">
       {label && <span>{label}</span>}
-      <span className="form-select-wrap">
-        <select className="field form-select" {...props}>
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="form-select-icon" size={17} aria-hidden="true" />
-      </span>
+      <FormSelect triggerClassName={`field ${className}`} {...props}>
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </FormSelect>
     </label>
   )
 }

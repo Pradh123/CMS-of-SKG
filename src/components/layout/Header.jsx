@@ -4,7 +4,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
 
 export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollapsed }) {
-  const { user, logout } = useAuth()
+  const { user, currentUser, logout } = useAuth()
   const navigate = useNavigate()
   const menuRef = useRef(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -28,7 +28,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
     )
   }
 
-  const displayName = formatDisplayName(user)
+  const displayName = currentUser?.name || formatDisplayName(user)
   const initials =
     displayName
       .split(' ')
@@ -38,7 +38,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
       .join('')
       .toUpperCase() || 'AD'
 
-  const email = user ? user.toLowerCase() : 'admin@skg.com'
+  const email = currentUser?.email || (user ? user.toLowerCase() : '')
 
   useEffect(() => {
     const handleClickOutside = event => {
@@ -115,7 +115,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
             <span className="profile-avatar large">{initials}</span>
             <div>
               <strong>{displayName}</strong>
-              <small>Administrator</small>
+              <small>{currentUser?.role || 'Administrator'}</small>
             </div>
           </div>
 

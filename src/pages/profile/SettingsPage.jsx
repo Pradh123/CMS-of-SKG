@@ -1,4 +1,5 @@
 import PageHeader from '../../components/layout/PageHeader.jsx'
+import { FormSelect } from '../../components/common/FormControls.jsx'
 
 export default function SettingsPage() {
   return (
@@ -47,19 +48,19 @@ export default function SettingsPage() {
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-600">Language</label>
-              <select className="field">
+              <FormSelect triggerClassName="field" aria-label="Language">
                 <option>English</option>
                 <option>Hindi</option>
                 <option>Spanish</option>
-              </select>
+              </FormSelect>
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-600">Timezone</label>
-              <select className="field">
+              <FormSelect triggerClassName="field" aria-label="Timezone">
                 <option>UTC+05:30</option>
                 <option>UTC+00:00</option>
                 <option>UTC-05:00</option>
-              </select>
+              </FormSelect>
             </div>
           </div>
           <div className="mt-6 flex justify-end">

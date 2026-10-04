@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
+import { SUPER_ADMIN_EMAIL } from '../../context/AuthContext.jsx'
 import '../../styles/login.css'
 
 export default function Login() {
   const { user, login } = useAuth()
   const navigate = useNavigate()
-  const [username, setUsername] = useState('')
+  const [username, setUsername] = useState(SUPER_ADMIN_EMAIL)
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 

@@ -1,6 +1,18 @@
 import PageHeader from '../../components/layout/PageHeader.jsx'
+import useAuth from '../../hooks/useAuth.js'
 
 export default function ProfilePage() {
+  const { currentUser, user } = useAuth()
+  const displayName = currentUser?.name || 'Super Admin'
+  const email = currentUser?.email || user || ''
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+
   return (
     <>
       <PageHeader
@@ -12,30 +24,34 @@ export default function ProfilePage() {
         <div className="card">
           <div className="flex items-center gap-5 mb-7">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-700">
-              AD
+              {initials}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">Admin Demo</h2>
-              <p className="text-slate-500">administrator@skg.com</p>
+              <h2 className="text-2xl font-bold text-slate-800">{displayName}</h2>
+              <p className="break-all text-slate-500">{email}</p>
             </div>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-600">Full name</label>
-              <input className="field" defaultValue="Admin Demo" />
+              <input className="field" defaultValue={displayName} />
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-600">Role</label>
-              <input className="field" defaultValue="Website Administrator" />
+              <input className="field" defaultValue={currentUser?.role || 'Super Admin'} />
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-600">Email</label>
-              <input className="field" defaultValue="administrator@skg.com" />
+              <input className="field" defaultValue={email} />
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-600">Phone</label>
-              <input className="field" defaultValue="+1 (555) 123-4567" />
+              <input
+                className="field"
+                defaultValue={currentUser?.phone || ''}
+                placeholder="Add phone number"
+              />
             </div>
           </div>
 
