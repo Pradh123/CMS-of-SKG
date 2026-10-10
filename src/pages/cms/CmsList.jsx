@@ -1,5 +1,7 @@
+import Loading from '../../components/common/Loading.jsx'
 import { useState } from 'react'
-import { FileText, MapPinned, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { blogUrl } from '../../utils/websiteUrl.js'
+import { Eye, FileText, MapPinned, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import Pagination from '../../components/common/Pagination.jsx'
 import useCollectionRecords from '../../hooks/useCollectionRecords.js'
@@ -46,6 +48,7 @@ export default function CmsList({ title, storageKey }) {
     if (!window.confirm('Delete this record?')) return
     await deleteRecord(id)
   }
+  if (loading) return <Loading variant="page" />
   return (
     <div className="area-list-page">
       <div className="area-list-topbar">
@@ -122,7 +125,12 @@ export default function CmsList({ title, storageKey }) {
                         <span>
                           <strong>{record.title || 'Untitled'}</strong>
                           <small className="cms-meta-line">
-                            {(record.metaTitle || record.metaDescription || 'No meta description yet').slice(0, 70)}
+                            {(isBlog
+                              ? record.description || 'No description yet'
+                              : record.metaTitle ||
+                                record.metaDescription ||
+                                'No meta description yet'
+                            ).slice(0, 70)}
                           </small>
                         </span>
                       </div>
@@ -143,6 +151,18 @@ export default function CmsList({ title, storageKey }) {
                     <td className="updated-cell">{formatUpdated(record.updatedAt)}</td>
                     <td>
                       <div className="cms-row-actions">
+                        {isBlog && (
+                          <a
+                            className="area-edit-btn"
+                            title="View blog on website"
+                            aria-label={`View ${record.title || 'blog'} on website`}
+                            href={blogUrl(record.slug, record.title)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Eye size={16} aria-hidden="true" />
+                          </a>
+                        )}
                         {canEdit && (
                           <Link
                             className="area-edit-btn"

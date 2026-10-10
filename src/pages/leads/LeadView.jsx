@@ -1,3 +1,4 @@
+import Loading from '../../components/common/Loading.jsx'
 import {
   ArrowLeft,
   CalendarDays,
@@ -35,7 +36,7 @@ export default function LeadView() {
   const canEdit = hasPermission('/leads', 'edit')
   const { records, loading, updateRecord } = useCollectionRecords('leads')
   const lead = records.find(item => String(item.id) === String(id))
-  if (loading) return <div className="card">Loading lead...</div>
+  if (loading) return <Loading variant="form" />
   if (!lead)
     return (
       <div className="card lead-not-found">

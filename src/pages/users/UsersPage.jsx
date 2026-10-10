@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import UsersSkeleton from './UsersSkeleton.jsx'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Plus,
@@ -17,7 +18,17 @@ import '../../styles/users.css'
 
 export default function UsersPage() {
   const navigate = useNavigate()
-  const { users, deleteUser, updateUser, impersonateUser } = useAuth()
+  const { users, deleteUser, updateUser, impersonateUser, refreshUsers } = useAuth()
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    let active = true
+    refreshUsers().finally(() => {
+      if (active) setLoading(false)
+    })
+    return () => {
+      active = false
+    }
+  }, [refreshUsers])
   const [query, setQuery] = useState('')
   const [modal, setModal] = useState(null)
   const [page, setPage] = useState(1)
@@ -42,6 +53,7 @@ export default function UsersPage() {
     }
   }
 
+  if (loading) return <UsersSkeleton />
   return (
     <div className="users-page">
       <PageHeader

@@ -1,3 +1,4 @@
+import Loading from '../common/Loading.jsx'
 import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
@@ -71,9 +72,7 @@ export default function CrudViewPage({ config }) {
   }
 
   if (loading) {
-    return (
-      <div className="card">Loading {String(config?.singular || 'record').toLowerCase()}...</div>
-    )
+    return <Loading variant="form" />
   }
 
   if (!record) {

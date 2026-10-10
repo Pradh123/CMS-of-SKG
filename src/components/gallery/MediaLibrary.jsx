@@ -1,3 +1,4 @@
+import Loading from '../common/Loading.jsx'
 import { FormSelect } from '../common/FormControls.jsx'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -391,11 +392,7 @@ export default function MediaLibrary({ onSelect, multiple = true }) {
           </button>
         </div>
       )}
-      {loading && (
-        <div className="media-empty" role="status">
-          Loading images...
-        </div>
-      )}
+      {loading && <Loading variant="gallery" />}
       {!loading && !items.length && !error && (
         <div className="media-empty">
           <ImagePlus size={32} />

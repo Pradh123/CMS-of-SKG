@@ -1,3 +1,4 @@
+import Loading from '../../../components/common/Loading.jsx'
 import { useMemo, useState } from 'react'
 import {
   Check,
@@ -120,6 +121,8 @@ export default function PromptList() {
   }
   const current = pageTypes.find(item => item.id === type)
   const CurrentIcon = current.icon
+  if (loading) return <Loading variant="page" />
+
   return (
     <div className="prompt-page">
       <header className="prompt-page-header">

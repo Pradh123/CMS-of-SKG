@@ -9,6 +9,7 @@ import './styles/users.css'
 import './styles/header.css'
 import './styles/components.css'
 import './styles/gallery.css'
+import './styles/loading.css'
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>

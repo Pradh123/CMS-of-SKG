@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import DashboardSkeleton from './components/DashboardSkeleton.jsx'
 import PageHeader from '../../components/layout/PageHeader.jsx'
 import DashboardCharts from './components/DashboardCharts.jsx'
 import DashboardStats from './components/DashboardStats.jsx'
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const { hasPermission, isSuperAdmin } = useAuth()
   const [data, setData] = useState(dashboardData)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
@@ -32,6 +34,9 @@ export default function Dashboard() {
       })
       .catch(requestError => {
         if (active) setError(requestError.message)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
       })
     return () => {
       active = false
@@ -65,6 +70,17 @@ export default function Dashboard() {
       : hasPermission(quickAccess[stat.label], 'view')
   )
 
+  if (loading)
+    return (
+      <DashboardSkeleton
+        statsCount={stats.length}
+        showTrips={canRegularTrips || canPickupTrips}
+        showVehicles={hasPermission('/vehicles', 'view')}
+        showRegular={canRegularTrips}
+        showPickup={canPickupTrips}
+        quickCount={quickStats.length}
+      />
+    )
   return (
     <div className="dashboard-page">
       <PageHeader title="Dashboard" description="Fleet and trip activity at a glance." />

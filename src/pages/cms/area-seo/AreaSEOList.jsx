@@ -1,3 +1,4 @@
+import Loading from '../../../components/common/Loading.jsx'
 import { useState } from 'react'
 import { Globe2, Pencil, Plus, Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -27,6 +28,8 @@ export default function AreaSEOList() {
   )
   const pages = Math.ceil(filtered.length / PAGE_SIZE)
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  if (loading) return <Loading variant="page" />
 
   return (
     <div className="area-list-page">

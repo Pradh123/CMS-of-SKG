@@ -22,8 +22,20 @@ export default function SecureMedia({ value, compact = false }) {
   }
   return (
     <div>
-      <button type="button" className="btn" disabled={busy} onClick={open}>
-        {busy ? 'Loading?' : preview ? 'Refresh access' : 'View private file'}
+      <button
+        type="button"
+        className="btn"
+        disabled={busy}
+        onClick={open}
+        aria-label={busy ? 'Loading private file' : undefined}
+      >
+        {busy ? (
+          <span className="skeleton skeleton-inline" aria-hidden="true" />
+        ) : preview ? (
+          'Refresh access'
+        ) : (
+          'View private file'
+        )}
         {!compact && ' ? ' + value.name}
       </button>
       {error && <p role="alert">{error}</p>}

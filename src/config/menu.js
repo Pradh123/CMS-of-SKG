@@ -37,34 +37,34 @@ export const menu = [
     children: [
       {
         label: 'Trips Regular',
-        //  path: '/trips/regular',
+        path: '/trips/regular',
         icon: CalendarDays,
       },
       {
         label: 'Trips Pickup/Drop',
-        // path: '/trips/pickup-drop' ,
+        path: '/trips/pickup-drop',
         icon: Route,
       },
     ],
   },
   {
     label: 'Vendor',
-    //  path: '/vendors',
+    path: '/vendors',
     icon: UsersRound,
   },
   {
     label: 'Fuel',
-    //  path: '/fuel',
+    path: '/fuel',
     icon: Fuel,
   },
   {
     label: 'Issues',
-    //  path: '/issues',
+    path: '/issues',
     icon: AlertTriangle,
   },
   {
     label: 'Invoice',
-    //  path: '/invoices',
+    path: '/invoices',
     icon: ReceiptText,
   },
   {

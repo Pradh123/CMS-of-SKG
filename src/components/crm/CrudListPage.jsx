@@ -1,3 +1,4 @@
+import Loading from '../common/Loading.jsx'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -217,6 +218,7 @@ export default function CrudListPage({ config }) {
     }
   }
 
+  if (loading) return <Loading variant="page" />
   if (!config?.key || !config?.path) {
     return (
       <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm font-medium text-rose-700">
@@ -279,7 +281,7 @@ export default function CrudListPage({ config }) {
                   {config.plural || 'Saved records'}
                 </h2>
                 <p className="mt-0.5 text-xs text-slate-500">
-                  {loading ? 'Loading' : records.length} total{' '}
+                  {records.length} total{' '}
                   {records.length === 1
                     ? String(config.singular || 'record').toLowerCase()
                     : String(config.plural || 'records').toLowerCase()}

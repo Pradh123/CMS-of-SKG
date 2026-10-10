@@ -187,7 +187,7 @@ export default function AppRoutes() {
         className="grid min-h-screen place-items-center bg-slate-50"
         aria-label="Loading session"
       >
-        <Loading />
+        <Loading variant="app" />
       </main>
     )
   }

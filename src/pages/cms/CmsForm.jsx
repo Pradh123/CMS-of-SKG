@@ -1,4 +1,6 @@
+import Loading from '../../components/common/Loading.jsx'
 import RequiredMark from '../../components/common/RequiredMark.jsx'
+import { blogUrl } from '../../utils/websiteUrl.js'
 import MediaPicker from '../../components/gallery/MediaPicker.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -7,6 +9,7 @@ import {
   CircleCheck,
   CircleDashed,
   FileText,
+  Eye,
   Globe,
   Image,
   Link2,
@@ -149,6 +152,7 @@ export default function CmsForm({ title, storageKey, mode }) {
     () =>
       existing || {
         title: '',
+        description: '',
         slug: '',
         content: '',
         image: '',
@@ -199,7 +203,7 @@ export default function CmsForm({ title, storageKey, mode }) {
       setSaving(false)
     }
   }
-  if (mode === 'edit' && loading) return <div className="card">Loading record...</div>
+  if (mode === 'edit' && loading) return <Loading variant="form" />
   if (mode === 'edit' && !existing)
     return (
       <div className="card">
@@ -254,6 +258,18 @@ export default function CmsForm({ title, storageKey, mode }) {
                 value={form.title}
                 onChange={update}
               />
+              {isBlog && (
+                <Field
+                  className="full-width"
+                  label="Description"
+                  name="description"
+                  as="textarea"
+                  rows="3"
+                  value={form.description || ''}
+                  onChange={update}
+                  hint="Shown below the blog title on the website and blog listing. Separate from the SEO meta description."
+                />
+              )}
               <Field
                 className="full-width"
                 label="Slug"
@@ -261,7 +277,11 @@ export default function CmsForm({ title, storageKey, mode }) {
                 value={form.slug}
                 onChange={update}
                 placeholder={slugify(form.title) || 'Generated from title if blank'}
-                hint={`Live URL: skgtravels.com${isBlog ? '/blogs/' : '/'}${resolvedSlug || '…'}`}
+                hint={
+                  isBlog
+                    ? `Live URL: ${blogUrl(resolvedSlug)}`
+                    : `Live URL: skgtravels.com/${resolvedSlug || '…'}`
+                }
               />
             </div>
           </section>
@@ -442,6 +462,18 @@ export default function CmsForm({ title, storageKey, mode }) {
           {form.status || 'Draft'}
         </span>
         <div className="seo-actions">
+          {isBlog && (
+            <a
+              className="btn btn-secondary"
+              title="View blog on website"
+              aria-label="View blog on website"
+              href={blogUrl(resolvedSlug)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Eye size={18} aria-hidden="true" />
+            </a>
+          )}
           <Link className="btn btn-secondary" to={base}>
             Cancel
           </Link>

@@ -1,3 +1,4 @@
+import Loading from '../../../components/common/Loading.jsx'
 import { FormSelect } from '../../../components/common/FormControls.jsx'
 import RequiredMark from '../../../components/common/RequiredMark.jsx'
 import { useEffect, useState } from 'react'
@@ -76,7 +77,7 @@ export default function AreaSEOForm({ mode }) {
   useEffect(() => {
     if (mode === 'edit' && existing) setForm(current => ({ ...current, ...existing }))
   }, [existing, mode])
-  if (mode === 'edit' && loading) return <div className="card">Loading page...</div>
+  if ((mode === 'edit' && loading) || citiesLoading) return <Loading variant="form" />
   if (mode === 'edit' && !existing)
     return (
       <div className="card">
@@ -183,7 +184,7 @@ export default function AreaSEOForm({ mode }) {
                   : 'Choose a city from Masters ? Cities.'
             }
           >
-            <option value="">{citiesLoading ? 'Loading cities...' : 'Select a city'}</option>
+            <option value="">Select a city</option>
             {form.cityName && !cities.includes(form.cityName) && (
               <option value={form.cityName}>{form.cityName} (saved city)</option>
             )}

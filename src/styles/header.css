@@ -279,3 +279,109 @@
     overflow-y: auto;
   }
 }
+.impersonation-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 32px;
+  background: #f0f7ff;
+  color: #234365;
+  border-bottom: 1px solid #d6e7fa;
+  flex-shrink: 0;
+}
+.impersonation-banner p {
+  margin: 0;
+}
+.impersonation-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.impersonation-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 1px solid #cde0f5;
+  border-radius: 12px;
+  background: #fff;
+  color: #0874c9;
+}
+.impersonation-copy {
+  min-width: 0;
+}
+.impersonation-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #62809e;
+}
+.impersonation-copy p {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.impersonation-return {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid #0868b2;
+  border-radius: 10px;
+  background: #0874c9;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px #0874c91a;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.impersonation-return:hover:not(:disabled) {
+  background: #0664ad;
+  box-shadow: 0 3px 8px #0874c92b;
+}
+.impersonation-return:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+.impersonation-return:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.impersonation-error {
+  flex-basis: 100%;
+}
+.impersonation-spinner {
+  animation: app-loader-spin 0.8s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .impersonation-spinner {
+    animation: none;
+  }
+}
+@media (max-width: 480px) {
+  .impersonation-identity {
+    flex-basis: 100%;
+  }
+  .impersonation-return {
+    width: 100%;
+  }
+}
+.impersonation-banner [role='alert'] {
+  margin-top: 4px;
+  color: #b91c1c;
+}
+@media (max-width: 800px) {
+  .impersonation-banner {
+    padding: 12px 20px;
+  }
+}

@@ -1,3 +1,4 @@
+import Loading from '../../components/common/Loading.jsx'
 import { useState } from 'react'
 import { ChevronRight, Mail, MessageSquareText, Phone, Search, UsersRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -27,6 +28,8 @@ export default function LeadList() {
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const changeStatus = (id, status) =>
     updateRecord(id, { status, statusUpdatedAt: new Date().toISOString() })
+
+  if (loading) return <Loading variant="page" />
 
   return (
     <div className="leads-page">

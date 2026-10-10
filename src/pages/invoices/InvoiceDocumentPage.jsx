@@ -1,3 +1,4 @@
+import Loading from '../../components/common/Loading.jsx'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
@@ -42,7 +43,7 @@ export default function InvoiceDocumentPage() {
     }
   }, [])
 
-  if (loading) return <div className="card">Loading invoice...</div>
+  if (loading) return <Loading variant="form" />
 
   if (!invoice) {
     return (

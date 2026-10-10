@@ -1,3 +1,4 @@
+import Loading from '../../components/common/Loading.jsx'
 import { useEffect, useState } from 'react'
 import PageHeader from '../../components/layout/PageHeader.jsx'
 import AppToast from '../../components/common/AppToast.jsx'
@@ -81,6 +82,8 @@ export default function SettingsPage() {
   }
 
   const disabled = loading || saving
+
+  if (loading) return <Loading variant="page" />
 
   return (
     <>
@@ -167,7 +170,7 @@ export default function SettingsPage() {
             )}
             <div className="mt-6 flex justify-end">
               <button className="btn" type="submit" disabled={disabled}>
-                {loading ? 'Loading…' : saving ? 'Saving…' : 'Save settings'}
+                {saving ? 'Saving…' : 'Save settings'}
               </button>
             </div>
           </div>

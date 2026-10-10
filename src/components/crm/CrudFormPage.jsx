@@ -1,3 +1,4 @@
+import Loading from '../common/Loading.jsx'
 import { mediaApi } from '../../services/mediaApi.js'
 import SecureMedia from '../common/SecureMedia.jsx'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -387,9 +388,7 @@ export default function CrudFormPage({ config }) {
   }
 
   if (editing && loading) {
-    return (
-      <div className="card">Loading {String(config?.singular || 'record').toLowerCase()}...</div>
-    )
+    return <Loading variant="form" />
   }
 
   if (editing && !record) {
