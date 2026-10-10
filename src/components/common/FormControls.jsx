@@ -1,4 +1,12 @@
-import { Children, isValidElement, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Children,
+  isValidElement,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -8,7 +16,7 @@ const GAP = 7
 function useFloatingPosition(open, triggerRef, popoverRef, preferredHeight, minimumWidth = 180) {
   const [style, setStyle] = useState({})
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return undefined
     const update = () => {
       const trigger = triggerRef.current
@@ -66,6 +74,7 @@ export function FormSelect({
   disabled = false,
   required = false,
   menuMinWidth = 180,
+  menuOwnerRef,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
 }) {
@@ -107,8 +116,15 @@ export function FormSelect({
   }, [open, options, selectedIndex])
 
   useEffect(() => {
-    if (open)
-      menuRef.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' })
+    if (!open) return
+    const menu = menuRef.current
+    const activeOption = menu?.querySelector('[data-active="true"]')
+    if (!menu || !activeOption) return
+    const menuBounds = menu.getBoundingClientRect()
+    const optionBounds = activeOption.getBoundingClientRect()
+    if (optionBounds.top < menuBounds.top) menu.scrollTop -= menuBounds.top - optionBounds.top
+    else if (optionBounds.bottom > menuBounds.bottom)
+      menu.scrollTop += optionBounds.bottom - menuBounds.bottom
   }, [activeIndex, open])
 
   const choose = option => {
@@ -117,7 +133,7 @@ export function FormSelect({
     if (!controlled) setInternalValue(nextValue)
     onChange?.({ target: { name, value: nextValue }, currentTarget: { name, value: nextValue } })
     setOpen(false)
-    triggerRef.current?.focus()
+    triggerRef.current?.focus({ preventScroll: true })
   }
   const move = direction => {
     let next = activeIndex
@@ -193,7 +209,7 @@ export function FormSelect({
               )
             })}
           </div>,
-          document.body
+          menuOwnerRef?.current || document.body
         )}
     </span>
   )
@@ -248,7 +264,18 @@ export function FormDatePicker({
     const initial = validSelectedDate || new Date()
     return new Date(initial.getFullYear(), initial.getMonth(), 1)
   })
-  const popoverStyle = useFloatingPosition(isOpen, triggerRef, popoverRef, 390, 290)
+  const popoverStyle = useFloatingPosition(isOpen, triggerRef, popoverRef, 390, 340)
+  const currentYear = new Date().getFullYear()
+  const firstYear = Math.min(
+    1900,
+    visibleMonth.getFullYear(),
+    parseDate(min)?.getFullYear() || 1900
+  )
+  const lastYear = Math.max(
+    currentYear + 100,
+    visibleMonth.getFullYear(),
+    parseDate(max)?.getFullYear() || currentYear + 100
+  )
   const days = useMemo(() => {
     const firstWeekday = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay()
     const dayCount = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate()
@@ -279,7 +306,7 @@ export function FormDatePicker({
     if (!controlled) setInternalValue(nextValue)
     onChange?.({ target: { name, value: nextValue }, currentTarget: { name, value: nextValue } })
     setIsOpen(false)
-    triggerRef.current?.focus()
+    triggerRef.current?.focus({ preventScroll: true })
   }
   const dateValueForDay = day =>
     toDateValue(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day))
@@ -341,9 +368,47 @@ export function FormDatePicker({
               >
                 <ChevronLeft size={18} />
               </button>
-              <strong>
-                {monthNames[visibleMonth.getMonth()]} {visibleMonth.getFullYear()}
-              </strong>
+              <div className="form-date-calendar-selectors">
+                <FormSelect
+                  className="form-date-month-select"
+                  menuMinWidth={150}
+                  menuOwnerRef={popoverRef}
+                  aria-label="Select month"
+                  value={visibleMonth.getMonth()}
+                  onChange={event =>
+                    setVisibleMonth(
+                      date => new Date(date.getFullYear(), Number(event.target.value), 1)
+                    )
+                  }
+                >
+                  {monthNames.map((month, index) => (
+                    <option key={month} value={index}>
+                      {month}
+                    </option>
+                  ))}
+                </FormSelect>
+                <FormSelect
+                  className="form-date-year-select"
+                  menuMinWidth={100}
+                  menuOwnerRef={popoverRef}
+                  aria-label="Select year"
+                  value={visibleMonth.getFullYear()}
+                  onChange={event =>
+                    setVisibleMonth(
+                      date => new Date(Number(event.target.value), date.getMonth(), 1)
+                    )
+                  }
+                >
+                  {Array.from(
+                    { length: lastYear - firstYear + 1 },
+                    (_, index) => firstYear + index
+                  ).map(year => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </FormSelect>
+              </div>
               <button
                 type="button"
                 aria-label="Next month"

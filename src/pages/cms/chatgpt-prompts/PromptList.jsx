@@ -1,6 +1,22 @@
 import { useMemo, useState } from 'react'
-import { Check, Clipboard, FileText, Info, MapPinned, Route, Sparkles } from 'lucide-react'
+import {
+  Check,
+  Clipboard,
+  FileText,
+  Info,
+  MapPinned,
+  Pencil,
+  Plus,
+  Route,
+  Save,
+  Sparkles,
+  Trash2,
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { FormSelect } from '../../../components/common/FormControls.jsx'
+import useAuth from '../../../hooks/useAuth.js'
+import useCollectionRecords from '../../../hooks/useCollectionRecords.js'
+import slugify from '../../../utils/slugify.js'
 
 const pageTypes = [
   { id: 'area', label: 'Area SEO Page', icon: MapPinned },
@@ -23,7 +39,26 @@ function buildPrompt(type, values) {
   return `${common}\n\nWrite ONE useful blog article for the SKG Travels website.\n\nTOPIC: ${values.topic || '<<< enter article topic >>>'}\nSERVICE TO PROMOTE: ${values.service || '<<< select a service >>>'}\n\nCreate an engaging, practical article with a clear introduction, descriptive H2/H3 sections, short paragraphs, useful lists and a concise conclusion. The CONTENT must be 800-1200 words of clean semantic HTML. Mention the selected service naturally and avoid keyword stuffing.\n\n${outputRules.blog}\n\nSet STATUS to Draft. Return each label on its own line followed by its value. No commentary and no code fences.`
 }
 
+function promptTitle(type, values) {
+  if (type === 'area') return `Area SEO: ${values.area || 'Untitled area'}`
+  if (type === 'route') {
+    return `Route SEO: ${values.from || 'Origin'} to ${values.to || 'Destination'}`
+  }
+  return `Blog: ${values.topic || 'Untitled topic'}`
+}
+
 export default function PromptList() {
+  const { hasPermission } = useAuth()
+  const canCreate = hasPermission('/cms/chatgpt-prompts', 'create')
+  const canEdit = hasPermission('/cms/chatgpt-prompts', 'edit')
+  const canDelete = hasPermission('/cms/chatgpt-prompts', 'delete')
+  const {
+    records,
+    loading,
+    error: recordsError,
+    createRecord,
+    deleteRecord,
+  } = useCollectionRecords('chatgpt-prompts')
   const [type, setType] = useState('area')
   const [values, setValues] = useState({
     area: '',
@@ -34,6 +69,8 @@ export default function PromptList() {
     topic: '',
   })
   const [copied, setCopied] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
   const prompt = useMemo(() => buildPrompt(type, values), [type, values])
   const setValue = event =>
     setValues(current => ({ ...current, [event.target.name]: event.target.value }))
@@ -50,6 +87,36 @@ export default function PromptList() {
     }
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1800)
+  }
+
+  async function savePrompt() {
+    if (!canCreate || saving) return
+    setSaving(true)
+    setSaveMessage('')
+    const title = promptTitle(type, values)
+    try {
+      await createRecord({
+        title,
+        slug: slugify(`${title}-${Date.now()}`),
+        content: prompt,
+        pageType: type,
+        status: 'Draft',
+      })
+      setSaveMessage('Prompt saved to MongoDB.')
+    } catch (requestError) {
+      setSaveMessage(requestError?.message || 'Prompt could not be saved.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function removePrompt(record) {
+    if (!canDelete || !window.confirm(`Delete ${record.title || 'this prompt'}?`)) return
+    try {
+      await deleteRecord(record.id)
+    } catch {
+      // The shared collection hook exposes the API error below.
+    }
   }
   const current = pageTypes.find(item => item.id === type)
   const CurrentIcon = current.icon
@@ -214,6 +281,17 @@ export default function PromptList() {
             {copied ? <Check size={17} /> : <Clipboard size={17} />}
             {copied ? 'Copied' : 'Copy prompt'}
           </button>
+          {canCreate && (
+            <button
+              type="button"
+              className="prompt-copy-btn"
+              onClick={savePrompt}
+              disabled={saving}
+            >
+              <Save size={17} />
+              {saving ? 'Saving' : 'Save prompt'}
+            </button>
+          )}
         </div>
         <pre className="prompt-preview" tabIndex="0">
           <code>{prompt}</code>
@@ -221,6 +299,81 @@ export default function PromptList() {
         <div className="prompt-note">
           <strong>Before publishing:</strong> Check local facts, links, spelling and SEO fields.
           Generated content should always receive a final human review.
+        </div>
+        {saveMessage && (
+          <p className="mt-3 text-sm text-slate-600" role="status">
+            {saveMessage}
+          </p>
+        )}
+      </section>
+
+      <section className="card mt-6 overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">Saved prompts</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Prompts in this list are stored by the admin backend.
+            </p>
+          </div>
+          {canCreate && (
+            <Link className="btn inline-flex items-center gap-2" to="/cms/chatgpt-prompts/create">
+              <Plus size={16} /> Add manually
+            </Link>
+          )}
+        </div>
+        {(recordsError || (saveMessage && !saveMessage.includes('saved'))) && (
+          <p className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700" role="alert">
+            {recordsError?.message || saveMessage}
+          </p>
+        )}
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[620px] border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                <th className="px-3 py-3">Title</th>
+                <th className="px-3 py-3">Type</th>
+                <th className="px-3 py-3">Status</th>
+                <th className="px-3 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {records.map(record => (
+                <tr key={record.id}>
+                  <td className="px-3 py-3 font-semibold text-slate-800">{record.title}</td>
+                  <td className="px-3 py-3 capitalize text-slate-600">
+                    {record.pageType || 'General'}
+                  </td>
+                  <td className="px-3 py-3 text-slate-600">{record.status || 'Draft'}</td>
+                  <td className="px-3 py-3">
+                    <div className="flex justify-end gap-2">
+                      {canEdit && (
+                        <Link
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-sky-700"
+                          to={`/cms/chatgpt-prompts/${record.id}/edit`}
+                          aria-label={`Edit ${record.title}`}
+                        >
+                          <Pencil size={15} />
+                        </Link>
+                      )}
+                      {canDelete && (
+                        <button
+                          type="button"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-200 text-rose-600"
+                          onClick={() => removePrompt(record)}
+                          aria-label={`Delete ${record.title}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!loading && records.length === 0 && !recordsError && (
+            <p className="py-8 text-center text-sm text-slate-500">No saved prompts yet.</p>
+          )}
         </div>
       </section>
     </div>

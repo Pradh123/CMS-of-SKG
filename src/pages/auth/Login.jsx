@@ -1,23 +1,33 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
-import { SUPER_ADMIN_EMAIL } from '../../context/AuthContext.jsx'
+import { DEV_ADMIN_EMAIL, DEV_ADMIN_PASSWORD, isDevAdmin } from '../../config/devCredentials.js'
 import '../../styles/login.css'
 
 export default function Login() {
   const { user, login } = useAuth()
   const navigate = useNavigate()
-  const [username, setUsername] = useState(SUPER_ADMIN_EMAIL)
-  const [password, setPassword] = useState('')
+  const [username, setUsername] = useState(isDevAdmin ? DEV_ADMIN_EMAIL : '')
+  const [password, setPassword] = useState(isDevAdmin ? DEV_ADMIN_PASSWORD : '')
   const [showPassword, setShowPassword] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   if (user) return <Navigate to="/" replace />
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-    if (!username.trim() || !password) return
-    login(username)
-    navigate('/')
+    if (!username.trim() || !password || submitting) return
+    setSubmitting(true)
+    setError('')
+    try {
+      await login(username, password)
+      navigate('/', { replace: true })
+    } catch (requestError) {
+      setError(requestError?.message || 'Email or password is incorrect.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -43,11 +53,15 @@ export default function Login() {
             <input
               id="username"
               name="username"
-              type="text"
-              autoComplete="username"
+              type="email"
+              autoComplete="email"
               placeholder="you@skgtravels.com"
               value={username}
-              onChange={event => setUsername(event.target.value)}
+              onChange={event => {
+                setUsername(event.target.value)
+                setError('')
+              }}
+              disabled={submitting}
               required
             />
             <div className="login-label-row">
@@ -64,7 +78,11 @@ export default function Login() {
                 autoComplete="current-password"
                 placeholder="••••••••"
                 value={password}
-                onChange={event => setPassword(event.target.value)}
+                onChange={event => {
+                  setPassword(event.target.value)
+                  setError('')
+                }}
+                disabled={submitting}
                 required
               />
               <button
@@ -72,6 +90,7 @@ export default function Login() {
                 onClick={() => setShowPassword(value => !value)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 aria-pressed={showPassword}
+                disabled={submitting}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -90,9 +109,23 @@ export default function Login() {
                 </svg>
               </button>
             </div>
-            <button className="login-submit" type="submit">
-              Sign in
+            {error && (
+              <p
+                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+                role="alert"
+              >
+                {error}
+              </p>
+            )}
+            <button className="login-submit" type="submit" disabled={submitting}>
+              {submitting ? 'Signing in…' : 'Sign in'}
             </button>
+            {isDevAdmin && (
+              <p className="login-demo">
+                Default Super Admin: <strong>{DEV_ADMIN_EMAIL}</strong> /{' '}
+                <strong>{DEV_ADMIN_PASSWORD}</strong>
+              </p>
+            )}
           </form>
           <div className="login-card-footer">
             <span>© {new Date().getFullYear()} SKG Travels</span>

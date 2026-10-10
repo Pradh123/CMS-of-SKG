@@ -36,8 +36,8 @@ export default function UsersPage() {
 
   const updateBlockedState = user => updateUser(user.id, { blocked: !user.blocked })
 
-  const loginAsUser = user => {
-    if (impersonateUser(user.id)) {
+  const loginAsUser = async user => {
+    if (await impersonateUser(user.id)) {
       window.setTimeout(() => navigate('/', { replace: true }), 0)
     }
   }
@@ -297,8 +297,8 @@ export default function UsersPage() {
           <button onClick={() => setModal(null)}>Cancel</button>
           <button
             className="users-confirm-delete"
-            onClick={() => {
-              deleteUser(modal.deleting.id)
+            onClick={async () => {
+              await deleteUser(modal.deleting.id)
               setModal(null)
             }}
           >

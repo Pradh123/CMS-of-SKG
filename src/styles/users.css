@@ -436,11 +436,46 @@
   margin-bottom: 10px;
   color: #173650;
 }
-.form-date-calendar-header strong {
-  font-size: 13px;
-  font-weight: 700;
+.form-date-calendar-selectors {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
 }
-.form-date-calendar-header button {
+.form-date-calendar-selectors .form-select-trigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  border: 1px solid #dce6f0;
+  border-radius: 8px;
+  padding: 0 4px;
+  background: #fff;
+  color: #173650;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.form-date-calendar-selectors .form-select-trigger:focus-visible {
+  outline: 2px solid #0874c9;
+  outline-offset: 2px;
+}
+.form-date-month-select {
+  flex: 1;
+  min-width: 0;
+}
+.form-date-year-select {
+  flex: 0 0 72px;
+  min-width: 0;
+}
+.form-date-month-select .form-select-trigger > span {
+  overflow: visible;
+  text-overflow: clip;
+}
+.form-date-calendar-header > button {
+  flex-shrink: 0;
   display: grid;
   width: 32px;
   height: 32px;
@@ -450,7 +485,7 @@
   background: transparent;
   color: #55738e;
 }
-.form-date-calendar-header button:hover {
+.form-date-calendar-header > button:hover {
   background: #eef6fc;
   color: #0874c9;
 }

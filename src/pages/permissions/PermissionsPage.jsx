@@ -50,6 +50,7 @@ export default function PermissionsPage() {
   const selectedUser = manageableUsers.find(user => String(user.id) === String(selectedId))
   const [draft, setDraft] = useState(() => normalizePermissions(selectedUser))
   const [dirty, setDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
@@ -84,15 +85,23 @@ export default function PermissionsPage() {
     setDirty(true)
   }
 
-  const save = () => {
+  const save = async () => {
     if (!selectedUser) return
-    saveUserPermissions(selectedUser.id, draft)
-    setDirty(false)
-    setToast({
-      type: 'success',
-      title: 'Permissions updated',
-      message: `${selectedUser.name}'s sidebar, dashboard, routes, and allowed actions are now updated.`,
-    })
+    setSaving(true)
+    try {
+      const saved = await saveUserPermissions(selectedUser.id, draft)
+      if (!saved) throw new Error('Permissions could not be updated. Please try again.')
+      setDirty(false)
+      setToast({
+        type: 'success',
+        title: 'Permissions updated',
+        message: `${selectedUser.name}'s sidebar, dashboard, routes, and allowed actions are now updated.`,
+      })
+    } catch (error) {
+      setToast({ type: 'error', message: error.message })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -153,11 +162,11 @@ export default function PermissionsPage() {
               </button>
               <button
                 type="button"
-                disabled={!dirty}
+                disabled={!dirty || saving}
                 onClick={save}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 text-sm font-semibold text-white shadow-lg shadow-sky-200 transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-45"
               >
-                <Save size={16} /> Save permissions
+                <Save size={16} /> {saving ? 'Saving...' : 'Save permissions'}
               </button>
             </div>
           </section>

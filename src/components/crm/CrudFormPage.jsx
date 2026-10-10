@@ -22,8 +22,8 @@ import {
 } from 'lucide-react'
 import PageHeader from '../layout/PageHeader.jsx'
 import { FormDatePicker, FormSelect } from '../common/FormControls.jsx'
-import { crmModules } from '../../config/crmModules.js'
-import useCrudRecords, { readCrudRecords } from '../../hooks/useCrudRecords.js'
+import useCrudRecords from '../../hooks/useCrudRecords.js'
+import { getAccessToken, lookupsApi } from '../../services/apiClient.js'
 import {
   fileName,
   fileUrl,
@@ -41,6 +41,76 @@ import {
 } from './crmShared.jsx'
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024
+const LOOKUP_CACHE_MS = 10_000
+const LOOKUP_KEYS = ['vehicles', 'drivers', 'vendors', 'parties']
+const lookupCache = new Map()
+const lookupRequests = new Map()
+
+async function loadLookup(key) {
+  const token = getAccessToken()
+  const cached = lookupCache.get(key)
+  if (cached && cached.token === token && Date.now() - cached.loadedAt < LOOKUP_CACHE_MS) {
+    return cached.records
+  }
+  const requestKey = `${token}:${key}`
+  if (!lookupRequests.has(requestKey)) {
+    const request = lookupsApi
+      .list(key)
+      .then(records => {
+        lookupCache.set(key, { records, loadedAt: Date.now(), token })
+        return records
+      })
+      .finally(() => lookupRequests.delete(requestKey))
+    lookupRequests.set(requestKey, request)
+  }
+  return lookupRequests.get(requestKey)
+}
+
+function useLookupReferences(keys) {
+  const requestKey = keys.join('|')
+  const [references, setReferences] = useState(() =>
+    Object.fromEntries(
+      LOOKUP_KEYS.map(key => {
+        const cached = lookupCache.get(key)
+        return [key, cached?.token === getAccessToken() ? cached.records : []]
+      })
+    )
+  )
+  const [errors, setErrors] = useState({})
+  const [retryVersion, setRetryVersion] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    keys.forEach(key => {
+      loadLookup(key)
+        .then(records => {
+          if (active) {
+            setReferences(current => ({ ...current, [key]: records }))
+            setErrors(current => {
+              const next = { ...current }
+              delete next[key]
+              return next
+            })
+          }
+        })
+        .catch(error => {
+          if (active) {
+            setReferences(current => ({ ...current, [key]: [] }))
+            setErrors(current => ({ ...current, [key]: error }))
+          }
+        })
+    })
+    return () => {
+      active = false
+    }
+  }, [requestKey, retryVersion])
+
+  return {
+    references,
+    errors,
+    retry: () => setRetryVersion(version => version + 1),
+  }
+}
 
 function cleanPath(path = '') {
   return path.length > 1 ? path.replace(/\/+$/, '') : path
@@ -101,28 +171,22 @@ function uniqueOptions(values) {
   return [...new Set(values.filter(Boolean).map(String))]
 }
 
-function withLinkedOptions(config, field, currentValue) {
+function withLinkedOptions(config, field, currentValue, references) {
   let linked = []
   let linkedSource = false
 
   if (field.name === 'vehicleNumber' && config?.key !== 'vehicles') {
     linkedSource = true
-    linked = readCrudRecords(crmModules.vehicles).map(record =>
-      recordLabel(record, ['registrationNumber'])
-    )
+    linked = references.vehicles.map(record => recordLabel(record, ['registrationNumber']))
   } else if (field.name === 'driverName' && config?.key === 'vehicles') {
     linkedSource = true
-    linked = readCrudRecords(crmModules.drivers).map(record =>
-      recordLabel(record, ['firstName', 'lastName'])
-    )
+    linked = references.drivers.map(record => recordLabel(record, ['firstName', 'lastName']))
   } else if (field.name === 'vendor' && config?.key === 'fuel') {
     linkedSource = true
-    linked = readCrudRecords(crmModules.vendors).map(record => recordLabel(record, ['vendorName']))
+    linked = references.vendors.map(record => recordLabel(record, ['vendorName']))
   } else if (['partyName', 'clientName'].includes(field.name)) {
     linkedSource = true
-    linked = readCrudRecords(crmModules.parties).map(record =>
-      recordLabel(record, ['corporateName'])
-    )
+    linked = references.parties.map(record => recordLabel(record, ['corporateName']))
   }
 
   if (!linkedSource) return field
@@ -150,7 +214,7 @@ function defaultDocumentStatus(values) {
   return 'Up to date'
 }
 
-function withRecordDefaults(config, values, record) {
+function withRecordDefaults(config, values, record, references) {
   const prepared = withCalculatedValues(config, values)
   const today = new Date().toISOString().slice(0, 10)
 
@@ -167,7 +231,7 @@ function withRecordDefaults(config, values, record) {
   }
 
   if (['tripsRegular', 'tripsPickupDrop'].includes(config?.key)) {
-    const vehicle = readCrudRecords(crmModules.vehicles).find(
+    const vehicle = references.vehicles.find(
       item => String(item.registrationNumber) === String(prepared.vehicleNumber)
     )
     prepared.driverName = vehicle?.driverName || record?.driverName || 'Unassigned'
@@ -215,8 +279,20 @@ export default function CrudFormPage({ config }) {
   const params = useParams()
   const id = params.id ?? params.recordId
   const navigate = useNavigate()
-  const { records, createRecord, updateRecord } = useCrudRecords(config)
+  const { records, loading, createRecord, updateRecord } = useCrudRecords(config)
   const fields = useMemo(() => getFields(config), [config])
+  const lookupKeys = useMemo(() => {
+    const keys = new Set()
+    fields.forEach(field => {
+      if (field.name === 'vehicleNumber' && config?.key !== 'vehicles') keys.add('vehicles')
+      if (field.name === 'driverName' && config?.key === 'vehicles') keys.add('drivers')
+      if (field.name === 'vendor' && config?.key === 'fuel') keys.add('vendors')
+      if (['partyName', 'clientName'].includes(field.name)) keys.add('parties')
+    })
+    return [...keys]
+  }, [config?.key, fields])
+  const { references, errors: lookupErrors, retry: retryLookups } = useLookupReferences(lookupKeys)
+  const failedLookups = Object.keys(lookupErrors)
   const sections = useMemo(() => getSections(config), [config])
   const record = id ? records.find(item => String(item.id) === String(id)) : null
   const [values, setValues] = useState(() => initialValues(fields, record))
@@ -261,7 +337,7 @@ export default function CrudFormPage({ config }) {
     }
   }
 
-  const save = event => {
+  const save = async event => {
     event.preventDefault()
     const missing = fields.find(
       field =>
@@ -284,7 +360,7 @@ export default function CrudFormPage({ config }) {
 
     setSaving(true)
     try {
-      const payload = withRecordDefaults(config, values, record)
+      const payload = withRecordDefaults(config, values, record, references)
       if (config?.key === 'invoices' && isBlank(payload.customerId)) {
         payload.customerId = `CUST-${Date.now().toString().slice(-7)}`
       }
@@ -295,7 +371,7 @@ export default function CrudFormPage({ config }) {
           payload[field.name] = payload[field.name].trim()
       })
 
-      const saved = editing ? updateRecord(id, payload) : createRecord(payload)
+      const saved = editing ? await updateRecord(id, payload) : await createRecord(payload)
       if (!saved) throw new Error('Record not found')
       setToast({
         type: 'success',
@@ -306,13 +382,11 @@ export default function CrudFormPage({ config }) {
       })
       window.setTimeout(() => navigate(basePath), 750)
     } catch (error) {
-      const storageFull =
-        error?.name === 'QuotaExceededError' || /quota/i.test(error?.message || '')
       setToast({
         type: 'error',
-        message: storageFull
-          ? 'Browser storage is full. Remove a large attachment or an old record and try again.'
-          : `The ${String(config?.singular || 'record').toLowerCase()} could not be saved. Please try again.`,
+        message:
+          error?.message ||
+          `The ${String(config?.singular || 'record').toLowerCase()} could not be saved. Please try again.`,
       })
       setSaving(false)
     }
@@ -323,6 +397,12 @@ export default function CrudFormPage({ config }) {
       <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm font-medium text-rose-700">
         This page needs a valid CRM configuration with a key and path.
       </div>
+    )
+  }
+
+  if (editing && loading) {
+    return (
+      <div className="card">Loading {String(config?.singular || 'record').toLowerCase()}...</div>
     )
   }
 
@@ -374,6 +454,24 @@ export default function CrudFormPage({ config }) {
       />
 
       <form onSubmit={save} className="space-y-5">
+        {failedLookups.length > 0 && (
+          <div
+            className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:flex-row sm:items-center sm:justify-between"
+            role="alert"
+          >
+            <span>
+              Reference options for {failedLookups.join(', ')} could not be loaded. Existing saved
+              values are preserved.
+            </span>
+            <button
+              type="button"
+              className="shrink-0 font-semibold text-amber-900 underline"
+              onClick={retryLookups}
+            >
+              Retry
+            </button>
+          </div>
+        )}
         {sections.map((section, sectionIndex) => (
           <section
             key={section.key || section.title || sectionIndex}
@@ -396,7 +494,12 @@ export default function CrudFormPage({ config }) {
             </div>
             <div className="grid grid-cols-1 gap-x-6 gap-y-5 px-5 py-6 sm:grid-cols-2 sm:px-7 lg:px-8 lg:py-8">
               {section.fields.map(field => {
-                const runtimeField = withLinkedOptions(config, field, displayValues[field.name])
+                const runtimeField = withLinkedOptions(
+                  config,
+                  field,
+                  displayValues[field.name],
+                  references
+                )
                 return (
                   <CrudField
                     key={field.name}
@@ -487,14 +590,14 @@ function CrudField({ field, value, setValue, onFile, reading }) {
       <div className={full ? 'sm:col-span-2' : ''}>
         <label
           htmlFor={id}
-          className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-sky-200 ${field.readOnly ? 'cursor-not-allowed opacity-70' : ''}`}
+          className={`relative flex min-h-12 items-center gap-3 rounded-xl border px-4 py-3 transition focus-within:ring-4 focus-within:ring-sky-100 ${value ? 'border-sky-300 bg-sky-50' : 'border-slate-200 bg-slate-50'} ${common.disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-sky-200'}`}
         >
           <input
             {...common}
             type="checkbox"
             checked={Boolean(value)}
             onChange={event => setValue(field.name, event.target.checked)}
-            className="peer sr-only"
+            className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
           />
           <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md border border-slate-300 bg-white text-transparent transition peer-checked:border-sky-600 peer-checked:bg-sky-600 peer-checked:text-white peer-focus-visible:ring-4 peer-focus-visible:ring-sky-100">
             <Check size={13} strokeWidth={3} />
@@ -590,7 +693,7 @@ function CrudField({ field, value, setValue, onFile, reading }) {
             </p>
             <p id={`${id}-help`} className="mt-1 text-xs leading-5 text-slate-500">
               {field.help ||
-                `${field.accept || (field.type === 'image' ? 'Image files' : 'Accepted files')} up to 2 MB. Stored in this browser.`}
+                `${field.accept || (field.type === 'image' ? 'Image files' : 'Accepted files')} up to 2 MB. Saved with the backend record.`}
             </p>
             <label
               htmlFor={id}

@@ -76,8 +76,8 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
     }
   }, [])
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     setIsMenuPinned(false)
     setIsMenuHovered(false)
     navigate('/login', { replace: true })
@@ -157,6 +157,10 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
           <div className="profile-links">
             {isSuperAdmin ? (
               <>
+                <NavLink to="/profile" className="profile-item" onClick={closeMenu}>
+                  <UserCircle2 size={18} />
+                  <span>My profile</span>
+                </NavLink>
                 <NavLink to="/users" className="profile-item" onClick={closeMenu}>
                   <UsersRound size={18} />
                   <span>Users</span>
@@ -176,8 +180,8 @@ export default function Header({ onToggleSidebar, isSidebarOpen, isSidebarCollap
               <button
                 type="button"
                 className="profile-item text-amber-700"
-                onClick={() => {
-                  stopImpersonating()
+                onClick={async () => {
+                  await stopImpersonating()
                   closeMenu()
                   window.setTimeout(() => navigate('/users', { replace: true }), 0)
                 }}

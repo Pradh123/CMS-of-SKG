@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -50,16 +51,35 @@ function columnDescriptor(column, fields, record) {
 }
 
 export default function CrudListPage({ config }) {
-  const { records, deleteRecord } = useCrudRecords(config)
+  const {
+    records: loadedRecords,
+    loading,
+    error,
+    deleteRecord,
+    updateRecord,
+  } = useCrudRecords(config)
   const { hasPermission } = useAuth()
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState('')
+  const [filter, setFilter] = useState(config?.defaultFilter || '')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0])
   const [deleting, setDeleting] = useState(null)
+  const [resolving, setResolving] = useState(null)
   const [deleteBusy, setDeleteBusy] = useState(false)
+  const [resolveBusy, setResolveBusy] = useState(false)
   const [toast, setToast] = useState(null)
   const closeToast = useCallback(() => setToast(null), [])
+
+  const records = useMemo(() => {
+    if (config?.mapListRecord) return loadedRecords.map(config.mapListRecord)
+    if (!config?.resolve) return loadedRecords
+    const field = config.resolve.field || 'status'
+    const fallback = config.resolve.defaultOpen || 'Open'
+    return loadedRecords.map(record => ({
+      ...record,
+      [field]: record[field] || fallback,
+    }))
+  }, [config, loadedRecords])
 
   const fields = useMemo(() => getFields(config), [config])
   const columns = useMemo(() => {
@@ -80,9 +100,10 @@ export default function CrudListPage({ config }) {
   }, [config, columns, fields])
 
   const filterField = useMemo(() => {
+    if (config?.filterField) return config.filterField
     const candidates = fields.filter(field => ['select', 'radio'].includes(field.type))
     return candidates.find(field => /status|state/i.test(field.name)) || candidates[0] || null
-  }, [fields])
+  }, [config, fields])
 
   const filterOptions = useMemo(() => {
     if (!filterField) return []
@@ -116,18 +137,36 @@ export default function CrudListPage({ config }) {
   const canEdit = hasPermission(basePath, 'edit')
   const canDelete = hasPermission(basePath, 'delete')
   const canViewDetails = Boolean(config.view && hasPermission(basePath, 'view'))
-  const hasRowActions = canViewDetails || canEdit || canDelete
+  const resolveConfig = config?.resolve
+  const canResolve = Boolean(resolveConfig) && canEdit
+  const hasRowActions = canViewDetails || canEdit || canDelete || canResolve
+  const resolveField = resolveConfig?.field || 'status'
+  const resolvedValue = resolveConfig?.resolvedValue || 'Resolved'
+  const openValues = resolveConfig?.openValues || ['Open', 'In Progress']
+  const isOpenRecord = record =>
+    openValues.includes(record?.[resolveField] || resolveConfig?.defaultOpen)
+  const openRecords = canResolve ? records.filter(isOpenRecord) : []
 
+  useEffect(() => {
+    setFilter('')
+  }, [config?.key])
   useEffect(() => setPage(1), [query, filter, pageSize, config?.key])
   useEffect(() => {
     if (page > pageCount) setPage(pageCount)
   }, [page, pageCount])
 
-  const confirmDelete = () => {
+  const applyResolvedStatus = useCallback(
+    async record => {
+      await updateRecord(record.id, { [resolveField]: resolvedValue })
+    },
+    [resolveField, resolvedValue, updateRecord]
+  )
+
+  const confirmDelete = async () => {
     if (!deleting) return
     setDeleteBusy(true)
     try {
-      deleteRecord(deleting.id)
+      await deleteRecord(deleting.id)
       setDeleting(null)
       setToast({
         type: 'success',
@@ -141,6 +180,40 @@ export default function CrudListPage({ config }) {
       })
     } finally {
       setDeleteBusy(false)
+    }
+  }
+
+  const confirmResolve = async () => {
+    if (!resolving) return
+    setResolveBusy(true)
+    try {
+      if (resolving === 'all') {
+        const unresolved = records.filter(isOpenRecord)
+        for (const record of unresolved) await applyResolvedStatus(record)
+        setToast({
+          type: 'success',
+          title: 'Issues resolved',
+          message:
+            unresolved.length === 1
+              ? '1 open issue is now marked resolved.'
+              : `${unresolved.length} open issues are now marked resolved.`,
+        })
+      } else {
+        await applyResolvedStatus(resolving)
+        setToast({
+          type: 'success',
+          title: 'Issue resolved',
+          message: `${getRecordName(config, resolving)} is now marked resolved.`,
+        })
+      }
+      setResolving(null)
+    } catch {
+      setToast({
+        type: 'error',
+        message: 'We couldn’t resolve this issue. Please try again.',
+      })
+    } finally {
+      setResolveBusy(false)
     }
   }
 
@@ -161,16 +234,38 @@ export default function CrudListPage({ config }) {
           `Manage all ${String(config.plural || 'records').toLowerCase()} in one place.`
         }
         action={
-          canCreate ? (
-            <Link
-              to={`${basePath}/create`}
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 px-5 text-sm font-semibold text-white shadow-lg shadow-sky-200 transition hover:brightness-105 focus:outline-none focus:ring-4 focus:ring-sky-100"
-            >
-              <Plus size={17} /> {config.addLabel || `Add ${config.singular || 'Record'}`}
-            </Link>
+          canCreate || (canResolve && openRecords.length) ? (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {canResolve && openRecords.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setResolving('all')}
+                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                >
+                  <CheckCircle2 size={17} /> Resolve all open
+                </button>
+              )}
+              {canCreate ? (
+                <Link
+                  to={`${basePath}/create`}
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 px-5 text-sm font-semibold text-white shadow-lg shadow-sky-200 transition hover:brightness-105 focus:outline-none focus:ring-4 focus:ring-sky-100"
+                >
+                  <Plus size={17} /> {config.addLabel || `Add ${config.singular || 'Record'}`}
+                </Link>
+              ) : null}
+            </div>
           ) : null
         }
       />
+
+      {error && (
+        <div
+          className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+          role="alert"
+        >
+          {error.message}
+        </div>
+      )}
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(15,45,75,0.06)]">
         <div className="border-b border-slate-200 bg-gradient-to-r from-sky-50/80 via-white to-white px-5 py-5 sm:px-6">
@@ -184,7 +279,7 @@ export default function CrudListPage({ config }) {
                   {config.plural || 'Saved records'}
                 </h2>
                 <p className="mt-0.5 text-xs text-slate-500">
-                  {records.length} total{' '}
+                  {loading ? 'Loading' : records.length} total{' '}
                   {records.length === 1
                     ? String(config.singular || 'record').toLowerCase()
                     : String(config.plural || 'records').toLowerCase()}
@@ -336,6 +431,17 @@ export default function CrudListPage({ config }) {
                                 <Pencil size={16} />
                               </Link>
                             )}
+                            {canResolve && isOpenRecord(record) && (
+                              <button
+                                type="button"
+                                onClick={() => setResolving(record)}
+                                className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                                title="Resolve"
+                                aria-label={`Resolve ${getRecordName(config, record)}`}
+                              >
+                                <CheckCircle2 size={16} />
+                              </button>
+                            )}
                             {canDelete && (
                               <button
                                 type="button"
@@ -398,6 +504,15 @@ export default function CrudListPage({ config }) {
                       >
                         <Pencil size={15} /> Edit
                       </Link>
+                    )}
+                    {canResolve && isOpenRecord(record) && (
+                      <button
+                        type="button"
+                        onClick={() => setResolving(record)}
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-700"
+                      >
+                        <CheckCircle2 size={15} /> Resolve
+                      </button>
                     )}
                     {canDelete && (
                       <button
@@ -508,6 +623,21 @@ export default function CrudListPage({ config }) {
         busy={deleteBusy}
         onCancel={() => setDeleting(null)}
         onConfirm={confirmDelete}
+      />
+      <ConfirmDialog
+        open={Boolean(resolving)}
+        tone="success"
+        title={resolving === 'all' ? 'Resolve all open issues?' : 'Resolve this issue?'}
+        message={
+          resolving === 'all'
+            ? `${openRecords.length} open ${openRecords.length === 1 ? 'issue' : 'issues'} will be marked resolved.`
+            : `“${getRecordName(config, resolving)}” will be marked resolved.`
+        }
+        confirmLabel={resolving === 'all' ? 'Resolve all' : 'Resolve issue'}
+        recordName={getRecordName(config, resolving)}
+        busy={resolveBusy}
+        onCancel={() => setResolving(null)}
+        onConfirm={confirmResolve}
       />
       <CrudToast toast={toast} onClose={closeToast} />
     </div>

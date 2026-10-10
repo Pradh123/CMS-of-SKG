@@ -1,21 +1,12 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
 import { ArrowLeft, Pencil, Printer, QrCode } from 'lucide-react'
 import PageHeader from '../../components/layout/PageHeader.jsx'
-import { STORAGE_PREFIX } from '../../config/constants.js'
 import useCrudRecords from '../../hooks/useCrudRecords.js'
 import { formatPlainValue } from '../../components/crm/crmShared.jsx'
 import { invoiceConfig } from './data/invoiceConfig.js'
-
-const SETTINGS_KEY = `${STORAGE_PREFIX}invoice-settings`
-
-function readSettings() {
-  try {
-    return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')
-  } catch {
-    return {}
-  }
-}
+import { settingsApi } from '../../services/apiClient.js'
 
 function money(value) {
   return formatPlainValue(value || 0, 'currency')
@@ -34,9 +25,24 @@ export default function InvoiceDocumentPage() {
   const { hasPermission } = useAuth()
   const canEdit = hasPermission('/invoices', 'edit')
   const { id } = useParams()
-  const { records } = useCrudRecords(invoiceConfig)
+  const { records, loading } = useCrudRecords(invoiceConfig)
   const invoice = records.find(item => String(item.id) === String(id))
-  const settings = readSettings()
+  const [settings, setSettings] = useState({})
+
+  useEffect(() => {
+    let active = true
+    settingsApi
+      .getInvoice()
+      .then(result => {
+        if (active) setSettings(result?.settings || result || {})
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
+  if (loading) return <div className="card">Loading invoice...</div>
 
   if (!invoice) {
     return (

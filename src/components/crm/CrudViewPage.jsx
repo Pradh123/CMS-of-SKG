@@ -55,7 +55,7 @@ function detailIcon(field) {
 export default function CrudViewPage({ config }) {
   const params = useParams()
   const id = params.id ?? params.recordId
-  const { records } = useCrudRecords(config)
+  const { records, loading } = useCrudRecords(config)
   const { hasPermission } = useAuth()
   const sections = useMemo(() => getSections(config), [config])
   const record = records.find(item => String(item.id) === String(id))
@@ -67,6 +67,12 @@ export default function CrudViewPage({ config }) {
       <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm font-medium text-rose-700">
         This page needs a valid CRM configuration with a key and path.
       </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="card">Loading {String(config?.singular || 'record').toLowerCase()}...</div>
     )
   }
 

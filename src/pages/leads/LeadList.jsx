@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { ChevronRight, Mail, MessageSquareText, Phone, Search, UsersRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Pagination from '../../components/common/Pagination.jsx'
-import { formatLeadDate, leadStatuses, readLeads, setLeadStatus } from './leadUtils.js'
+import { formatLeadDate, leadStatuses } from './leadUtils.js'
 import LeadStatusDropdown from './LeadStatusDropdown.jsx'
 import { FormSelect } from '../../components/common/FormControls.jsx'
 import useAuth from '../../hooks/useAuth.js'
+import useCollectionRecords from '../../hooks/useCollectionRecords.js'
 
 const PAGE_SIZE = 10
 
 export default function LeadList() {
   const { hasPermission } = useAuth()
-  const [leads, setLeads] = useState(readLeads)
+  const { records: leads, loading, error, updateRecord } = useCollectionRecords('leads')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
   const [page, setPage] = useState(1)
@@ -24,7 +25,8 @@ export default function LeadList() {
   })
   const pages = Math.ceil(filtered.length / PAGE_SIZE)
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  const changeStatus = (id, status) => setLeads(setLeadStatus(id, status))
+  const changeStatus = (id, status) =>
+    updateRecord(id, { status, statusUpdatedAt: new Date().toISOString() })
 
   return (
     <div className="leads-page">
@@ -39,6 +41,9 @@ export default function LeadList() {
         </div>
       </div>
       <section className="card leads-card">
+        {error && (
+          <p className="m-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error.message}</p>
+        )}
         <div className="leads-card-header">
           <div className="leads-title">
             <span>
@@ -140,7 +145,7 @@ export default function LeadList() {
               ))}
             </tbody>
           </table>
-          {!visible.length && (
+          {!loading && !visible.length && (
             <div className="lead-empty">
               <MessageSquareText size={31} />
               <h3>{query || filter !== 'All' ? 'No matching leads' : 'No leads received yet'}</h3>

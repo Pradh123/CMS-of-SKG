@@ -37,34 +37,43 @@ export function permissionsForRole(role = 'Admin') {
   return Object.fromEntries(permissionModules.map(module => [module.id, allOperations(module)]))
 }
 
-export function normalizePermissions(user = {}) {
+function asAccount(user) {
+  return user && typeof user === 'object' && !Array.isArray(user) ? user : {}
+}
+
+export function normalizePermissions(user) {
+  const account = asAccount(user)
+
   if (
-    user.permissions &&
-    typeof user.permissions === 'object' &&
-    !Array.isArray(user.permissions)
+    account.permissions &&
+    typeof account.permissions === 'object' &&
+    !Array.isArray(account.permissions)
   ) {
     return Object.fromEntries(
       permissionModules.map(module => {
-        const saved = Array.isArray(user.permissions[module.id]) ? user.permissions[module.id] : []
+        const saved = Array.isArray(account.permissions[module.id])
+          ? account.permissions[module.id]
+          : []
         return [module.id, saved.filter(operation => module.operations.includes(operation))]
       })
     )
   }
 
-  if (Array.isArray(user.panels)) {
+  if (Array.isArray(account.panels)) {
     return Object.fromEntries(
       permissionModules.map(module => [
         module.id,
-        user.panels.includes(module.id) ? allOperations(module) : [],
+        account.panels.includes(module.id) ? allOperations(module) : [],
       ])
     )
   }
 
-  return permissionsForRole(user.role)
+  return permissionsForRole(account.role)
 }
 
-export function visiblePanels(permissions = {}) {
+export function visiblePanels(permissions) {
+  const access = permissions && typeof permissions === 'object' ? permissions : {}
   return permissionModules
-    .filter(module => permissions[module.id]?.includes('view'))
+    .filter(module => access[module.id]?.includes('view'))
     .map(module => module.id)
 }

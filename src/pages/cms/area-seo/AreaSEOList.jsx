@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Globe2, Pencil, Plus, Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Pagination from '../../../components/common/Pagination.jsx'
-import { readRecords } from '../../../data/store.js'
+import useCollectionRecords from '../../../hooks/useCollectionRecords.js'
 import useAuth from '../../../hooks/useAuth.js'
 
 const PAGE_SIZE = 8
@@ -17,10 +17,9 @@ export default function AreaSEOList() {
   const { hasPermission } = useAuth()
   const canCreate = hasPermission('/cms/area-seo', 'create')
   const canEdit = hasPermission('/cms/area-seo', 'edit')
-  const [records, setRecords] = useState(() => readRecords('area-seo'))
+  const { records, loading, error } = useCollectionRecords('area-seo')
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
-  useEffect(() => setRecords(readRecords('area-seo')), [])
   const filtered = records.filter(record =>
     `${record.areaName || record.title || ''} ${record.cityName || ''} ${record.slug || ''} ${record.seoTitle || record.metaTitle || ''}`
       .toLowerCase()
@@ -43,6 +42,9 @@ export default function AreaSEOList() {
         )}
       </div>
       <section className="card area-list-card">
+        {error && (
+          <p className="m-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error.message}</p>
+        )}
         <div className="area-list-heading">
           <div className="area-list-title">
             <span className="area-list-icon">
@@ -119,7 +121,7 @@ export default function AreaSEOList() {
               ))}
             </tbody>
           </table>
-          {!visible.length && (
+          {!loading && !visible.length && (
             <div className="area-empty">
               <Globe2 size={28} />
               <p>{query ? 'No matching area pages found.' : 'No area pages saved yet.'}</p>

@@ -12,10 +12,8 @@ import {
   X,
 } from 'lucide-react'
 import PageHeader from '../../components/layout/PageHeader.jsx'
-import { STORAGE_PREFIX } from '../../config/constants.js'
 import useAuth from '../../hooks/useAuth.js'
-
-const SETTINGS_KEY = `${STORAGE_PREFIX}invoice-settings`
+import { settingsApi } from '../../services/apiClient.js'
 
 const emptySettings = {
   bankName: '',
@@ -30,14 +28,8 @@ const emptySettings = {
 const inputClass =
   'h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-11 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100'
 const labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-600'
-
-function readSettings() {
-  try {
-    return { ...emptySettings, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }
-  } catch {
-    return emptySettings
-  }
-}
+const MAX_QR_IMAGE_BYTES = 2 * 1024 * 1024
+const QR_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 
 function Field({ icon: Icon, label, children }) {
   return (
@@ -57,10 +49,25 @@ function Field({ icon: Icon, label, children }) {
 export default function InvoiceSettingsPage() {
   const { hasPermission } = useAuth()
   const canEdit = hasPermission('/masters/invoice-settings', 'edit')
-  const [settings, setSettings] = useState(readSettings)
+  const [settings, setSettings] = useState(emptySettings)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef(null)
+
+  useEffect(() => {
+    let active = true
+    settingsApi
+      .getInvoice()
+      .then(result => {
+        if (active) setSettings({ ...emptySettings, ...(result?.settings || result) })
+      })
+      .catch(requestError => {
+        if (active) setError(requestError.message)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!saved) return undefined
@@ -76,8 +83,14 @@ export default function InvoiceSettingsPage() {
   const updateQr = event => {
     const file = event.target.files?.[0]
     if (!file) return
-    if (!file.type.startsWith('image/')) {
+    if (!QR_IMAGE_TYPES.has(file.type)) {
       setError('Please choose a PNG, JPG, or WEBP image.')
+      event.target.value = ''
+      return
+    }
+    if (file.size > MAX_QR_IMAGE_BYTES) {
+      setError('QR images must be no larger than 2 MB.')
+      event.target.value = ''
       return
     }
 
@@ -90,15 +103,16 @@ export default function InvoiceSettingsPage() {
     reader.readAsDataURL(file)
   }
 
-  const save = event => {
+  const save = async event => {
     event.preventDefault()
     if (!canEdit) return
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+      const result = await settingsApi.saveInvoice(settings)
+      setSettings({ ...emptySettings, ...(result?.settings || result) })
       setError('')
       setSaved(true)
-    } catch {
-      setError('Settings could not be saved. Try a smaller QR image.')
+    } catch (requestError) {
+      setError(requestError?.message || 'Settings could not be saved. Please check the details.')
     }
   }
 

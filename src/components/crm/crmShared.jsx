@@ -164,6 +164,7 @@ function statusClasses(value) {
       'overdue',
       'rejected',
       'unavailable',
+      'closed',
     ].some(item => normalized.includes(item))
   )
     return 'border-rose-200 bg-rose-50 text-rose-700'
@@ -264,11 +265,20 @@ export function ConfirmDialog({
   open,
   recordName,
   singular = 'record',
+  title,
+  message,
+  confirmLabel,
+  tone = 'danger',
   onCancel,
   onConfirm,
   busy = false,
 }) {
   const cancelRef = useRef(null)
+  const isDanger = tone !== 'success'
+  const heading = title || `Delete ${singular}?`
+  const copy =
+    message || `“${recordName}” will be permanently removed. This action cannot be undone.`
+  const actionLabel = confirmLabel || `Delete ${singular}`
 
   useEffect(() => {
     if (!open) return undefined
@@ -292,19 +302,23 @@ export function ConfirmDialog({
         className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="crud-delete-title"
-        aria-describedby="crud-delete-copy"
+        aria-labelledby="crud-confirm-title"
+        aria-describedby="crud-confirm-copy"
       >
         <div className="flex items-start gap-4">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600">
+          <span
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${
+              isDanger ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-700'
+            }`}
+          >
             <AlertTriangle size={21} />
           </span>
           <div>
-            <h2 id="crud-delete-title" className="text-lg font-bold text-slate-800">
-              Delete {singular}?
+            <h2 id="crud-confirm-title" className="text-lg font-bold text-slate-800">
+              {heading}
             </h2>
-            <p id="crud-delete-copy" className="mt-2 text-sm leading-6 text-slate-500">
-              “{recordName}” will be permanently removed. This action cannot be undone.
+            <p id="crud-confirm-copy" className="mt-2 text-sm leading-6 text-slate-500">
+              {copy}
             </p>
           </div>
         </div>
@@ -322,12 +336,16 @@ export function ConfirmDialog({
             disabled={busy}
             type="button"
             onClick={onConfirm}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 text-sm font-semibold text-white shadow-lg shadow-rose-200 transition hover:bg-rose-700 focus:outline-none focus:ring-4 focus:ring-rose-100 disabled:cursor-wait disabled:opacity-60"
+            className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold text-white shadow-lg transition focus:outline-none disabled:cursor-wait disabled:opacity-60 ${
+              isDanger
+                ? 'bg-rose-600 shadow-rose-200 hover:bg-rose-700 focus:ring-4 focus:ring-rose-100'
+                : 'bg-emerald-600 shadow-emerald-200 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100'
+            }`}
           >
             {busy && (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
             )}
-            {busy ? 'Deleting…' : `Delete ${singular}`}
+            {busy ? 'Working…' : actionLabel}
           </button>
         </div>
       </section>

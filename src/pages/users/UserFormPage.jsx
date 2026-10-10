@@ -5,6 +5,7 @@ import {
   BriefcaseBusiness,
   Building2,
   CheckCircle2,
+  KeyRound,
   Mail,
   MapPin,
   Phone,
@@ -15,26 +16,24 @@ import {
 import useAuth from '../../hooks/useAuth.js'
 import PageHeader from '../../components/layout/PageHeader.jsx'
 import { crmModules } from '../../config/crmModules.js'
-import { readCrudRecords } from '../../hooks/useCrudRecords.js'
+import useCrudRecords from '../../hooks/useCrudRecords.js'
 import { FormDatePicker, FormSelect } from '../../components/common/FormControls.jsx'
 import AppToast from '../../components/common/AppToast.jsx'
 
 const inputClass =
   'h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-11 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100'
 const labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-600'
+const MAX_PROFILE_IMAGE_BYTES = 2 * 1024 * 1024
+const PROFILE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
 
 export default function UserFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { users, createUser, updateUser } = useAuth()
+  const { records: branchRecords } = useCrudRecords(crmModules.branches)
   const user = id ? users.find(item => item.id === id) : null
   const branchOptions = [
-    ...new Set(
-      [
-        ...readCrudRecords(crmModules.branches).map(branch => branch.branchName),
-        user?.branch,
-      ].filter(Boolean)
-    ),
+    ...new Set([...branchRecords.map(branch => branch.branchName), user?.branch].filter(Boolean)),
   ]
   const [toast, setToast] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(user?.photo || '')
@@ -51,6 +50,16 @@ export default function UserFormPage() {
   const handlePhotoChange = event => {
     const file = event.target.files?.[0]
     if (!file) return
+    if (!PROFILE_IMAGE_TYPES.has(file.type)) {
+      setToast({ type: 'error', message: 'Choose a PNG, JPG, WEBP, or GIF profile image.' })
+      event.target.value = ''
+      return
+    }
+    if (file.size > MAX_PROFILE_IMAGE_BYTES) {
+      setToast({ type: 'error', message: 'Profile images must be no larger than 2 MB.' })
+      event.target.value = ''
+      return
+    }
     if (photoPreview?.startsWith('blob:')) URL.revokeObjectURL(photoPreview)
     setPhotoPreview(URL.createObjectURL(file))
     setPhotoName(file.name)
@@ -88,8 +97,8 @@ export default function UserFormPage() {
         return
       }
 
-      if (user) updateUser(user.id, data)
-      else createUser(data)
+      const saved = user ? await updateUser(user.id, data) : await createUser(data)
+      if (!saved) throw new Error('User could not be saved')
       setToast({
         type: 'success',
         title: user ? 'Changes saved' : 'User added',
@@ -237,7 +246,6 @@ export default function UserFormPage() {
               >
                 <option>Admin</option>
                 <option>Inquiry</option>
-                <option>Super Admin</option>
               </FormSelect>
             </span>
           </label>
@@ -278,6 +286,30 @@ export default function UserFormPage() {
               />
             )}
           </label>
+          {!user && (
+            <label className="sm:col-span-2">
+              <span className={labelClass}>Temporary password *</span>
+              {iconField(
+                KeyRound,
+                <input
+                  className={inputClass}
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="8+ characters with upper, lower, number & symbol"
+                  minLength="8"
+                  maxLength="128"
+                  pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,128}"
+                  title="Use 8-128 characters with uppercase, lowercase, a number, and a symbol."
+                  required
+                />
+              )}
+              <span className="mt-2 block text-xs text-slate-500">
+                Use 8-128 characters with uppercase, lowercase, a number, and a symbol. Share it
+                securely; the user can change it after signing in.
+              </span>
+            </label>
+          )}
           <label>
             <span className={labelClass}>Mobile number</span>
             {iconField(
@@ -296,7 +328,7 @@ export default function UserFormPage() {
             <span className={labelClass}>Date of birth</span>
             <FormDatePicker
               name="dob"
-              defaultValue={user?.dob || ''}
+              defaultValue={user?.dob ? String(user.dob).slice(0, 10) : ''}
               triggerClassName={`${inputClass} px-4`}
               placeholder="Select date of birth"
             />
@@ -315,9 +347,9 @@ export default function UserFormPage() {
             )}
           </label>
 
-          <label className="sm:col-span-2">
+          <label className="min-w-0 sm:col-span-2">
             <span className={labelClass}>Profile image</span>
-            <span className="flex min-h-24 cursor-pointer items-center gap-4 rounded-xl border border-dashed border-sky-200 bg-sky-50/60 p-4 transition hover:border-sky-400 hover:bg-sky-50">
+            <span className="relative flex min-h-24 cursor-pointer items-center gap-4 rounded-xl border border-dashed border-sky-200 bg-sky-50/60 p-4 transition hover:border-sky-400 hover:bg-sky-50 focus-within:ring-2 focus-within:ring-sky-500">
               {photoPreview ? (
                 <img
                   className="h-14 w-14 shrink-0 rounded-xl border-2 border-white object-cover shadow-sm"
@@ -329,7 +361,7 @@ export default function UserFormPage() {
                   <UploadCloud size={22} />
                 </span>
               )}
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-semibold text-slate-700">
                   {photoName || (user?.photo ? 'Change profile image' : 'Choose a profile image')}
                 </span>
@@ -338,10 +370,10 @@ export default function UserFormPage() {
                 </span>
               </span>
               <input
-                className="sr-only"
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 name="photo"
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp,image/gif"
                 onChange={handlePhotoChange}
               />
             </span>

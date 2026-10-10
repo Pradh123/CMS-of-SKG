@@ -1,18 +1,11 @@
-import { STORAGE_PREFIX } from '../config/constants.js'
-import { areaSEOData } from './areaSEOData.js'
-import { blogData } from './blogData.js'
-import { promptData } from './promptData.js'
-import { routeSEOData } from './routeSEOData.js'
+import { readCachedRecords, loadCollectionRecords } from '../hooks/useCollectionRecords.js'
+import { recordsApi } from '../services/apiClient.js'
 
-const defaults = { 'area-seo': areaSEOData, 'route-seo': routeSEOData, blog: blogData, 'chatgpt-prompts': promptData }
 export function readRecords(key) {
-  try {
-    const saved = localStorage.getItem(STORAGE_PREFIX + key)
-    return saved === null ? (defaults[key] || []) : JSON.parse(saved)
-  } catch {
-    return []
-  }
+  return readCachedRecords(key)
 }
-export function writeRecords(key, records) {
-  localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(records))
-}
+
+export const loadRecords = key => loadCollectionRecords(key)
+export const createRecord = (key, record) => recordsApi.create(key, record)
+export const updateRecord = (key, id, record) => recordsApi.update(key, id, record)
+export const deleteRecord = (key, id) => recordsApi.remove(key, id)

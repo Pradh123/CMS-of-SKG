@@ -2,39 +2,52 @@ import { CalendarDays } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 function DonutCard({ title, total, data, colors, rows, action }) {
+  const hasData = data.some(item => Number(item.value) > 0)
   return (
     <article className="dashboard-card donut-card">
       <header className="dashboard-card-heading">
         <h2>{title}</h2>
         {action && (
-          <a className="dashboard-action" href="/">
+          <a className="dashboard-action" href={action}>
             View All
           </a>
         )}
       </header>
       <div className="donut-wrap">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              innerRadius="70%"
-              outerRadius="96%"
-              paddingAngle={0}
-              stroke="none"
-              startAngle={90}
-              endAngle={-270}
-            >
-              {data.map((item, i) => (
-                <Cell key={item.name} fill={colors[i]} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+        {hasData ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius="70%"
+                outerRadius="96%"
+                paddingAngle={0}
+                stroke="none"
+                startAngle={90}
+                endAngle={-270}
+              >
+                {data.map((item, i) => (
+                  <Cell key={item.name} fill={colors[i]} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <svg
+            width="145"
+            height="145"
+            viewBox="0 0 145 145"
+            role="img"
+            aria-label={`${title}: no data yet`}
+          >
+            <circle cx="72.5" cy="72.5" r="59" fill="none" stroke="#e2eaf1" strokeWidth="18" />
+          </svg>
+        )}
         <div className="donut-total">
           <strong>{total}</strong>
-          <span>Total</span>
+          <span>{hasData ? 'Total' : 'No data yet'}</span>
         </div>
       </div>
       <div className="donut-legend">
@@ -52,28 +65,30 @@ function DonutCard({ title, total, data, colors, rows, action }) {
 }
 
 export default function DashboardCharts({ charts, showTrips = true, showVehicles = true }) {
+  const tripTotal = Number(charts.trips.total) || 0
+  const vehicleTotal = Number(charts.vehicles.total) || 0
   const tripRows = [
     {
       label: 'Regular Trips',
       value: charts.trips.regular,
-      percent: `${((charts.trips.regular / charts.trips.total) * 100).toFixed(1)}%`,
+      percent: `${(tripTotal ? (charts.trips.regular / tripTotal) * 100 : 0).toFixed(1)}%`,
     },
     {
       label: 'Pick Up / Drop',
       value: charts.trips.pickup,
-      percent: `${((charts.trips.pickup / charts.trips.total) * 100).toFixed(1)}%`,
+      percent: `${(tripTotal ? (charts.trips.pickup / tripTotal) * 100 : 0).toFixed(1)}%`,
     },
   ]
   const vehicleRows = [
     {
       label: 'Active',
       value: charts.vehicles.active,
-      percent: `${((charts.vehicles.active / charts.vehicles.total) * 100).toFixed(0)}%`,
+      percent: `${(vehicleTotal ? (charts.vehicles.active / vehicleTotal) * 100 : 0).toFixed(0)}%`,
     },
     {
       label: 'Inactive',
       value: charts.vehicles.inactive,
-      percent: `${((charts.vehicles.inactive / charts.vehicles.total) * 100).toFixed(0)}%`,
+      percent: `${(vehicleTotal ? (charts.vehicles.inactive / vehicleTotal) * 100 : 0).toFixed(0)}%`,
     },
   ]
   if (!showTrips && !showVehicles) return null
@@ -83,13 +98,15 @@ export default function DashboardCharts({ charts, showTrips = true, showVehicles
         <article className="dashboard-card trips-overview">
           <header className="dashboard-card-heading">
             <h2>Trips Overview</h2>
-            <span className="dashboard-action muted">No recent activity</span>
+            <span className="dashboard-action muted">All recorded trips</span>
           </header>
-          <strong className="overview-number">0</strong>
+          <strong className="overview-number">{tripTotal}</strong>
           <p className="overview-caption">Latest trip on record: {charts.latestTrip}</p>
           <div className="overview-empty">
             <CalendarDays size={25} />
-            <span>No trips started in the last 12 months.</span>
+            <span>
+              {tripTotal ? `${tripTotal} trip(s) recorded.` : 'No trips have been recorded yet.'}
+            </span>
           </div>
         </article>
       )}
@@ -115,7 +132,7 @@ export default function DashboardCharts({ charts, showTrips = true, showVehicles
           ]}
           colors={['#83c438', '#f4a52f']}
           rows={vehicleRows}
-          action
+          action="/vehicles"
         />
       )}
     </section>

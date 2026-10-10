@@ -3,6 +3,7 @@ import AdminLayout from '../components/layout/AdminLayout.jsx'
 import useAuth from '../hooks/useAuth.js'
 import Login from '../pages/auth/Login.jsx'
 import ForgotPassword from '../pages/auth/ForgotPassword.jsx'
+import ResetPassword from '../pages/auth/ResetPassword.jsx'
 import AreaSEOCreate from '../pages/cms/area-seo/AreaSEOCreate.jsx'
 import AreaSEOEdit from '../pages/cms/area-seo/AreaSEOEdit.jsx'
 import AreaSEOList from '../pages/cms/area-seo/AreaSEOList.jsx'
@@ -50,6 +51,7 @@ import VehicleListPage from '../pages/vehicles/VehicleListPage.jsx'
 import VehicleViewPage from '../pages/vehicles/VehicleViewPage.jsx'
 import VendorFormPage from '../pages/vendors/VendorFormPage.jsx'
 import VendorListPage from '../pages/vendors/VendorListPage.jsx'
+import Loading from '../components/common/Loading.jsx'
 
 const SUPER_ADMIN_ROUTES = [
   { path: '/users', Component: UsersPage },
@@ -170,17 +172,29 @@ const PANEL_ROUTES = [
 ]
 
 export default function AppRoutes() {
-  const { user, isSuperAdmin, hasPermission } = useAuth()
+  const { user, isLoading, isSuperAdmin, hasPermission } = useAuth()
   const routeOperation = path => {
     if (path.endsWith('/create')) return 'create'
     if (path.endsWith('/edit')) return 'edit'
     return 'view'
   }
 
+  if (isLoading) {
+    return (
+      <main
+        className="grid min-h-screen place-items-center bg-slate-50"
+        aria-label="Loading session"
+      >
+        <Loading />
+      </main>
+    )
+  }
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route element={user ? <AdminLayout /> : <Navigate to="/login" replace />}>
         <Route
@@ -212,10 +226,7 @@ export default function AppRoutes() {
           />
         ))}
 
-        <Route
-          path="/profile"
-          element={isSuperAdmin ? <Navigate to="/users" replace /> : <ProfilePage />}
-        />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
         <Route
