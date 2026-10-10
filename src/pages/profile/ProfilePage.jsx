@@ -1,3 +1,4 @@
+import RequiredMark from '../../components/common/RequiredMark.jsx'
 import { useEffect, useState } from 'react'
 import PageHeader from '../../components/layout/PageHeader.jsx'
 import AppToast from '../../components/common/AppToast.jsx'
@@ -98,6 +99,7 @@ export default function ProfilePage() {
                 htmlFor="profile-name"
               >
                 Full name
+                <RequiredMark />
               </label>
               <input
                 id="profile-name"
@@ -130,6 +132,7 @@ export default function ProfilePage() {
                 htmlFor="profile-email"
               >
                 Email
+                <RequiredMark />
               </label>
               <input
                 id="profile-email"

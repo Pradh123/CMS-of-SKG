@@ -1,3 +1,4 @@
+import SecureMedia from '../common/SecureMedia.jsx'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, Download, FileText, Image as ImageIcon } from 'lucide-react'
@@ -46,7 +47,10 @@ export function isBlank(value) {
 
 export function isFileObject(value) {
   return Boolean(
-    value && typeof value === 'object' && (value.dataUrl || value.url) && (value.name || value.type)
+    value &&
+    typeof value === 'object' &&
+    (value.mediaId || value.dataUrl || value.url) &&
+    (value.name || value.type)
   )
 }
 
@@ -191,6 +195,7 @@ function statusClasses(value) {
 }
 
 export function ValuePreview({ value, descriptor = {}, compact = false }) {
+  if (value?.mediaId) return <SecureMedia value={value} compact={compact} />
   const format = descriptor.format || descriptor.type
   if (isBlank(value)) return <span className="text-slate-400">—</span>
 

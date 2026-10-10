@@ -1,3 +1,4 @@
+import RequiredMark from '../../components/common/RequiredMark.jsx'
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
@@ -65,7 +66,10 @@ export default function Login() {
               required
             />
             <div className="login-label-row">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">
+                Password
+                <RequiredMark />
+              </label>
               <Link className="login-forgot" to="/forgot-password">
                 Forgot?
               </Link>

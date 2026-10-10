@@ -1,3 +1,5 @@
+import RequiredMark from '../../components/common/RequiredMark.jsx'
+import MediaPicker from '../../components/gallery/MediaPicker.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -22,7 +24,10 @@ function Field({ label, hint, className = '', as = 'input', children, ...props }
   const Element = as
   return (
     <label className={`seo-field ${className}`}>
-      <span className="form-label">{label}</span>
+      <span className="form-label">
+        {label}
+        {props.required && <RequiredMark />}
+      </span>
       <Element className="field" {...props}>
         {children}
       </Element>
@@ -45,7 +50,17 @@ function SectionHeading({ icon: Icon, title, description }) {
   )
 }
 
-function CounterField({ label, hint, value, min, max, as = 'input', rows, className = '', ...props }) {
+function CounterField({
+  label,
+  hint,
+  value,
+  min,
+  max,
+  as = 'input',
+  rows,
+  className = '',
+  ...props
+}) {
   const length = String(value || '').length
   const state = countState(length, { min, max })
   const Element = as
@@ -53,6 +68,7 @@ function CounterField({ label, hint, value, min, max, as = 'input', rows, classN
     <label className={`seo-field ${className}`}>
       <span className="form-label">
         {label}
+        {props.required && <RequiredMark />}
         <span className={`char-counter is-${state}`}>
           {length}/{max}
         </span>
@@ -140,11 +156,15 @@ export default function CmsForm({ title, storageKey, mode }) {
         canonicalUrl: '',
         metaTitle: '',
         metaDescription: '',
+        keywords: '',
+        headScripts: '',
+        bodyScripts: '',
         status: 'Draft',
       }
   )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [imageTarget, setImageTarget] = useState('')
   const isBlog = storageKey === 'blog'
   const update = event =>
     setForm(current => ({ ...current, [event.target.name]: event.target.value }))
@@ -153,7 +173,10 @@ export default function CmsForm({ title, storageKey, mode }) {
   }, [existing, mode])
 
   const resolvedSlug = form.slug || slugify(form.title || '')
-  const checklist = useMemo(() => seoChecklist({ ...form, slug: resolvedSlug }), [form, resolvedSlug])
+  const checklist = useMemo(
+    () => seoChecklist({ ...form, slug: resolvedSlug }),
+    [form, resolvedSlug]
+  )
   const contentLength = stripHtml(form.content).length
   const imagePreview = /^(https?:\/\/|\/)/i.test(form.image || '') ? form.image : ''
 
@@ -188,6 +211,12 @@ export default function CmsForm({ title, storageKey, mode }) {
     )
   return (
     <form className="card seo-page-form editor-form" onSubmit={submit}>
+      <MediaPicker
+        open={Boolean(imageTarget)}
+        multiple={false}
+        onClose={() => setImageTarget('')}
+        onSelect={items => setForm(previous => ({ ...previous, [imageTarget]: items[0].url }))}
+      />
       <header className="seo-form-header">
         <div>
           <span className="seo-header-kicker">
@@ -243,7 +272,9 @@ export default function CmsForm({ title, storageKey, mode }) {
               description={`Write the main content for this ${isBlog ? 'blog post' : 'route page'}.`}
             />
             <RichTextEditor label="Content" value={form.content} name="content" onChange={update} />
-            <p className={`content-length is-${contentLength >= 300 ? 'ok' : contentLength ? 'warn' : 'empty'}`}>
+            <p
+              className={`content-length is-${contentLength >= 300 ? 'ok' : contentLength ? 'warn' : 'empty'}`}
+            >
               {contentLength} characters of readable content
             </p>
           </section>
@@ -263,6 +294,9 @@ export default function CmsForm({ title, storageKey, mode }) {
                 onChange={update}
                 placeholder="https://example.com/image.jpg"
               />
+              <button type="button" className="btn" onClick={() => setImageTarget('image')}>
+                Choose featured image from Gallery
+              </button>
               {imagePreview && (
                 <div className="full-width">
                   <img className="hero-preview" src={imagePreview} alt="Featured preview" />
@@ -277,6 +311,9 @@ export default function CmsForm({ title, storageKey, mode }) {
                 onChange={update}
                 hint="Used for WhatsApp, Facebook and Twitter previews. Falls back to the featured image."
               />
+              <button type="button" className="btn" onClick={() => setImageTarget('ogImage')}>
+                Choose social image from Gallery
+              </button>
             </div>
           </section>
           <section className="seo-section">
@@ -311,12 +348,54 @@ export default function CmsForm({ title, storageKey, mode }) {
               />
               <Field
                 className="full-width"
+                label="Keywords"
+                name="keywords"
+                value={form.keywords || ''}
+                onChange={update}
+                placeholder="Mumbai taxi, airport transfer"
+                hint="Comma-separated, relevant terms. Keep wording natural in the content."
+              />
+              <Field
+                className="full-width"
                 label="Canonical URL (optional)"
                 name="canonicalUrl"
                 type="url"
                 value={form.canonicalUrl || ''}
                 onChange={update}
                 hint="Only set this when the same story exists at another address."
+              />
+            </div>
+          </section>
+          <section className="seo-section">
+            <SectionHeading
+              icon={Globe}
+              title="Optional page scripts"
+              description="Keep schema and tracking code separate from article content."
+            />
+            <div className="seo-form-grid">
+              <Field
+                className="full-width code-field"
+                as="textarea"
+                rows="6"
+                label="SEO / schema scripts"
+                name="headScripts"
+                value={form.headScripts || ''}
+                onChange={update}
+                placeholder={
+                  '<script type="application/ld+json">{ "@context": "https://schema.org" }</script>'
+                }
+                hint="Paste complete script tags. JSON-LD is rendered with the page; JavaScript loads after the page becomes interactive."
+              />
+              <Field
+                className="full-width code-field"
+                as="textarea"
+                rows="6"
+                label="After-content scripts"
+                name="bodyScripts"
+                value={form.bodyScripts || ''}
+                onChange={update}
+                placeholder={'<script src="https://example.com/tracking.js"></script>'}
+                hint="Optional tracking scripts. Loaded after page content without blocking rendering."
               />
             </div>
           </section>

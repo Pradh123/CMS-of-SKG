@@ -1805,10 +1805,19 @@ export const crmModules = {
           },
           {
             name: 'headScripts',
-            label: 'Head Scripts',
+            label: 'SEO / Schema Scripts',
             type: 'textarea',
             full: true,
-            placeholder: 'Enter optional head scripts',
+            placeholder: 'Paste complete script tags or JSON-LD schema',
+            help: 'JSON-LD is rendered with the page. JavaScript loads after the page becomes interactive.',
+          },
+          {
+            name: 'bodyScripts',
+            label: 'After-content Scripts',
+            type: 'textarea',
+            full: true,
+            placeholder: '<script> ... </script>',
+            help: 'Optional tracking scripts loaded after page content.',
           },
           {
             name: 'active',

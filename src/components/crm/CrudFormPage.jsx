@@ -1,3 +1,5 @@
+import { mediaApi } from '../../services/mediaApi.js'
+import SecureMedia from '../common/SecureMedia.jsx'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -259,22 +261,6 @@ function fieldIcon(field) {
   return FileText
 }
 
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () =>
-      resolve({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        lastModified: file.lastModified,
-        dataUrl: reader.result,
-      })
-    reader.onerror = () => reject(reader.error || new Error('Unable to read file'))
-    reader.readAsDataURL(file)
-  })
-}
-
 export default function CrudFormPage({ config }) {
   const params = useParams()
   const id = params.id ?? params.recordId
@@ -326,11 +312,11 @@ export default function CrudFormPage({ config }) {
 
     setReadingFiles(current => [...current, field.name])
     try {
-      setValue(field.name, await readFile(file))
-    } catch {
+      setValue(field.name, await mediaApi.upload(file, '/' + config.key))
+    } catch (error) {
       setToast({
         type: 'error',
-        message: `We could not read ${file.name}. Please choose it again.`,
+        message: error.message || `Upload failed for ${file.name}.`,
       })
     } finally {
       setReadingFiles(current => current.filter(name => name !== field.name))
@@ -657,8 +643,8 @@ function CrudField({ field, value, setValue, onFile, reading }) {
   }
 
   if (field.type === 'file' || field.type === 'image') {
-    const hasValue = Boolean(fileUrl(value))
-    const image = hasValue && isImageValue(value, field)
+    const hasValue = Boolean(value?.mediaId || fileUrl(value))
+    const image = hasValue && !value?.mediaId && isImageValue(value, field)
     return (
       <div className={full ? 'sm:col-span-2' : ''}>
         <span className={labelClass}>
@@ -702,6 +688,7 @@ function CrudField({ field, value, setValue, onFile, reading }) {
               <UploadCloud size={14} /> {hasValue ? 'Replace file' : 'Browse file'}
             </label>
           </div>
+          {value?.mediaId && <SecureMedia value={value} compact />}
           {hasValue && !field.readOnly && (
             <button
               type="button"

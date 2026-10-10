@@ -1,3 +1,4 @@
+import RequiredMark from '../../components/common/RequiredMark.jsx'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
@@ -67,8 +68,12 @@ export default function ResetPassword() {
         ) : (
           <>
             <form onSubmit={handleSubmit} className="forgot-form">
-              <label className="sr-only" htmlFor="new-password">
+              <label
+                className="block text-left text-sm font-medium text-slate-600"
+                htmlFor="new-password"
+              >
                 New password
+                <RequiredMark />
               </label>
               <input
                 id="new-password"
@@ -85,8 +90,12 @@ export default function ResetPassword() {
                 disabled={submitting}
                 required
               />
-              <label className="sr-only" htmlFor="confirm-new-password">
+              <label
+                className="block text-left text-sm font-medium text-slate-600"
+                htmlFor="confirm-new-password"
+              >
                 Confirm new password
+                <RequiredMark />
               </label>
               <input
                 id="confirm-new-password"

@@ -1,3 +1,4 @@
+import RequiredMark from '../../components/common/RequiredMark.jsx'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -180,7 +181,10 @@ export default function UserFormPage() {
 
         <div className="grid gap-x-6 gap-y-5 px-5 py-6 sm:grid-cols-2 sm:px-7 lg:px-8 lg:py-8">
           <label>
-            <span className={labelClass}>First name *</span>
+            <span className={labelClass}>
+              First name
+              <RequiredMark />
+            </span>
             {iconField(
               UserRound,
               <input
@@ -196,7 +200,10 @@ export default function UserFormPage() {
             )}
           </label>
           <label>
-            <span className={labelClass}>Last name *</span>
+            <span className={labelClass}>
+              Last name
+              <RequiredMark />
+            </span>
             {iconField(
               UserRound,
               <input
@@ -232,7 +239,10 @@ export default function UserFormPage() {
           </fieldset>
 
           <label>
-            <span className={labelClass}>User type *</span>
+            <span className={labelClass}>
+              User type
+              <RequiredMark />
+            </span>
             <span className="relative block">
               <BriefcaseBusiness
                 className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-slate-400"
@@ -272,7 +282,10 @@ export default function UserFormPage() {
           </label>
 
           <label className="sm:col-span-2">
-            <span className={labelClass}>Email address *</span>
+            <span className={labelClass}>
+              Email address
+              <RequiredMark />
+            </span>
             {iconField(
               Mail,
               <input
@@ -288,7 +301,10 @@ export default function UserFormPage() {
           </label>
           {!user && (
             <label className="sm:col-span-2">
-              <span className={labelClass}>Temporary password *</span>
+              <span className={labelClass}>
+                Temporary password
+                <RequiredMark />
+              </span>
               {iconField(
                 KeyRound,
                 <input

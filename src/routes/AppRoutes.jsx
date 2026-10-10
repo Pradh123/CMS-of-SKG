@@ -1,3 +1,4 @@
+import GalleryPage from '../pages/gallery/GalleryPage.jsx'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminLayout from '../components/layout/AdminLayout.jsx'
 import useAuth from '../hooks/useAuth.js'
@@ -61,6 +62,7 @@ const SUPER_ADMIN_ROUTES = [
 ]
 
 const PANEL_ROUTES = [
+  { path: '/gallery', access: '/gallery', Component: GalleryPage },
   { path: '/leads', access: '/leads', Component: LeadList },
   { path: '/leads/:id', access: '/leads', Component: LeadView },
 

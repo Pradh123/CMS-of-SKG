@@ -1,3 +1,4 @@
+import RequiredMark from '../../components/common/RequiredMark.jsx'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth.js'
@@ -34,8 +35,12 @@ export default function ForgotPassword() {
         <img className="forgot-logo" src="/logo/skg-logo.png" alt="SKG Travels" />
         <h1 id="forgot-title">Forgot your password?</h1>
         <form onSubmit={handleSubmit} className="forgot-form">
-          <label className="sr-only" htmlFor="reset-email">
+          <label
+            className="block text-left text-sm font-medium text-slate-600"
+            htmlFor="reset-email"
+          >
             Your Email
+            <RequiredMark />
           </label>
           <input
             id="reset-email"

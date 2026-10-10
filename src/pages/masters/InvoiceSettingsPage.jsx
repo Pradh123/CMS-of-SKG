@@ -1,3 +1,4 @@
+import RequiredMark from '../../components/common/RequiredMark.jsx'
 import { useEffect, useRef, useState } from 'react'
 import {
   Building2,
@@ -34,7 +35,10 @@ const QR_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 function Field({ icon: Icon, label, children }) {
   return (
     <label>
-      <span className={labelClass}>{label}</span>
+      <span className={labelClass}>
+        {label}
+        {children?.props?.required && <RequiredMark />}
+      </span>
       <span className="relative block">
         <Icon
           className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"

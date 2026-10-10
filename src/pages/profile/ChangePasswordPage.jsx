@@ -1,3 +1,4 @@
+import RequiredMark from '../../components/common/RequiredMark.jsx'
 import { useState } from 'react'
 import PageHeader from '../../components/layout/PageHeader.jsx'
 import AppToast from '../../components/common/AppToast.jsx'
@@ -72,6 +73,7 @@ export default function ChangePasswordPage() {
               htmlFor="current-password"
             >
               Current password
+              <RequiredMark />
             </label>
             <input
               id="current-password"
@@ -89,6 +91,7 @@ export default function ChangePasswordPage() {
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-600" htmlFor="new-password">
               New password
+              <RequiredMark />
             </label>
             <input
               id="new-password"
@@ -112,6 +115,7 @@ export default function ChangePasswordPage() {
               htmlFor="confirm-password"
             >
               Confirm new password
+              <RequiredMark />
             </label>
             <input
               id="confirm-password"

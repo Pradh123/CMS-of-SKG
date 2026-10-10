@@ -1,13 +1,8 @@
 @import 'tailwindcss';
-@import '@fontsource/sora/400.css';
-@import '@fontsource/sora/500.css';
-@import '@fontsource/sora/600.css';
-@import '@fontsource/sora/700.css';
-@import '@fontsource/sora/800.css';
 
 /* Change --font-sans here to update the font across the entire admin app. */
 @theme {
-  --font-sans: 'Sora', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 :root {
@@ -183,4 +178,35 @@ input[type='reset'],
     border-radius: 0 !important;
     box-shadow: none !important;
   }
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+/* Keep modal scrollbars compact, including nested preview and gallery panels. */
+:where(dialog, [aria-modal='true']),
+:where(dialog, [aria-modal='true']) * {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+:where(dialog, [aria-modal='true'])::-webkit-scrollbar,
+:where(dialog, [aria-modal='true']) *::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+:where(dialog, [aria-modal='true'])::-webkit-scrollbar-track,
+:where(dialog, [aria-modal='true']) *::-webkit-scrollbar-track {
+  background: transparent;
+}
+:where(dialog, [aria-modal='true'])::-webkit-scrollbar-thumb,
+:where(dialog, [aria-modal='true']) *::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+:where(dialog, [aria-modal='true'])::-webkit-scrollbar-thumb:hover,
+:where(dialog, [aria-modal='true']) *::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

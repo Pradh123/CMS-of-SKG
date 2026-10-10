@@ -1,3 +1,5 @@
+import { FormSelect } from '../../../components/common/FormControls.jsx'
+import RequiredMark from '../../../components/common/RequiredMark.jsx'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Code2, FileText, Image, MapPinned, Search } from 'lucide-react'
@@ -8,7 +10,7 @@ import slugify from '../../../utils/slugify.js'
 
 const emptyForm = {
   areaName: '',
-  cityName: 'Mumbai',
+  cityName: '',
   slug: '',
   h1Title: '',
   seoTitle: '',
@@ -20,25 +22,18 @@ const emptyForm = {
   bodyHtml: '',
   faqHtml: '',
   headScripts: '',
+  bodyScripts: '',
   active: true,
   published: false,
 }
-const cities = [
-  'Mumbai',
-  'Navi Mumbai',
-  'Thane',
-  'Pune',
-  'Delhi',
-  'Bengaluru',
-  'Hyderabad',
-  'Chennai',
-]
-
 function Field({ label, hint, className = '', as = 'input', children, ...props }) {
   const Element = as
   return (
     <label className={`seo-field ${className}`}>
-      <span className="form-label">{label}</span>
+      <span className="form-label">
+        {label}
+        {props.required && <RequiredMark />}
+      </span>
       <Element className="field" {...props}>
         {children}
       </Element>
@@ -65,6 +60,14 @@ export default function AreaSEOForm({ mode }) {
   const navigate = useNavigate()
   const { id } = useParams()
   const { records, loading, createRecord, updateRecord } = useCollectionRecords('area-seo')
+  const {
+    records: cityRecords,
+    loading: citiesLoading,
+    error: citiesError,
+  } = useCollectionRecords('cities')
+  const cities = [
+    ...new Set(cityRecords.map(city => String(city.cityName || '').trim()).filter(Boolean)),
+  ].sort((a, b) => a.localeCompare(b))
   const existing = records.find(record => record.id === id)
   const [form, setForm] = useState(() => ({ ...emptyForm, ...existing }))
   const [imageName, setImageName] = useState(existing?.heroImageName || '')
@@ -107,6 +110,10 @@ export default function AreaSEOForm({ mode }) {
   }
   const submit = async event => {
     event.preventDefault()
+    if (citiesLoading || citiesError || !form.cityName) {
+      setError('Select a city from Masters → Cities before saving.')
+      return
+    }
     const record = {
       ...form,
       title: form.areaName,
@@ -162,14 +169,28 @@ export default function AreaSEOForm({ mode }) {
           />
           <Field
             label="City name"
-            as="select"
+            as={FormSelect}
             name="cityName"
+            required
             value={form.cityName}
             onChange={update}
-            hint="Default city for the landing page."
+            disabled={citiesLoading || Boolean(citiesError)}
+            hint={
+              citiesError
+                ? 'Cities could not be loaded. Please refresh and try again.'
+                : !citiesLoading && !cities.length
+                  ? 'Add a city in Masters ? Cities first.'
+                  : 'Choose a city from Masters ? Cities.'
+            }
           >
+            <option value="">{citiesLoading ? 'Loading cities...' : 'Select a city'}</option>
+            {form.cityName && !cities.includes(form.cityName) && (
+              <option value={form.cityName}>{form.cityName} (saved city)</option>
+            )}
             {cities.map(city => (
-              <option key={city}>{city}</option>
+              <option key={city} value={city}>
+                {city}
+              </option>
             ))}
           </Field>
           <Field
@@ -297,19 +318,32 @@ export default function AreaSEOForm({ mode }) {
         <SectionHeading
           icon={Code2}
           title="Advanced settings"
-          description="Optional code and verification tags for the document head."
+          description="Optional schema and tracking scripts, kept separate from page content."
         />
         <div className="seo-form-grid">
           <Field
             className="full-width code-field"
             as="textarea"
             rows="6"
-            label="Head scripts"
+            label="SEO / schema scripts"
             name="headScripts"
             value={form.headScripts}
             onChange={update}
+            placeholder={
+              '<script type="application/ld+json">{ "@context": "https://schema.org" }</script>'
+            }
+            hint="Paste complete script tags. JSON-LD is rendered with the page; JavaScript loads after the page becomes interactive."
+          />
+          <Field
+            className="full-width code-field"
+            as="textarea"
+            rows="6"
+            label="After-content scripts"
+            name="bodyScripts"
+            value={form.bodyScripts || ''}
+            onChange={update}
             placeholder="<script> ... </script>"
-            hint="Written verbatim into the <head> — use for verification meta tags, tracking pixels or JSON-LD schema."
+            hint="Optional tracking scripts, loaded after content without blocking rendering."
           />
         </div>
       </section>
