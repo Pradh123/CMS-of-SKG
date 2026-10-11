@@ -1,6 +1,7 @@
 import Loading from '../../components/common/Loading.jsx'
+import { FormSelect } from '../../components/common/FormControls.jsx'
 import RequiredMark from '../../components/common/RequiredMark.jsx'
-import { blogUrl } from '../../utils/websiteUrl.js'
+import { blogUrl, routeUrl } from '../../utils/websiteUrl.js'
 import MediaPicker from '../../components/gallery/MediaPicker.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react'
 import Button from '../../components/common/Button.jsx'
 import RichTextEditor from '../../components/editor/RichTextEditor.jsx'
+import FaqEditor from '../../components/editor/FaqEditor.jsx'
 import useCollectionRecords from '../../hooks/useCollectionRecords.js'
 import slugify from '../../utils/slugify.js'
 import { countState, seoChecklist, serpPreview, stripHtml } from '../../utils/seoContent.js'
@@ -147,14 +149,24 @@ export default function CmsForm({ title, storageKey, mode }) {
   const { id } = useParams()
   const base = `/cms/${storageKey}`
   const { records, loading, createRecord, updateRecord } = useCollectionRecords(storageKey)
+  const {
+    records: cityRecords,
+    loading: citiesLoading,
+    error: citiesError,
+  } = useCollectionRecords(storageKey === 'blog' ? null : 'cities')
+  const cities = [
+    ...new Set(cityRecords.map(city => String(city.cityName || '').trim()).filter(Boolean)),
+  ]
   const existing = records.find(record => record.id === id)
   const [form, setForm] = useState(
     () =>
       existing || {
         title: '',
+        cityName: '',
         description: '',
         slug: '',
         content: '',
+        faqs: [],
         image: '',
         ogImage: '',
         canonicalUrl: '',
@@ -186,6 +198,10 @@ export default function CmsForm({ title, storageKey, mode }) {
 
   async function submit(event) {
     event.preventDefault()
+    if (!isBlog && (citiesLoading || citiesError || !cities.includes(form.cityName))) {
+      setError('Select a city from Masters / Cities before saving this route page.')
+      return
+    }
     const record = {
       ...form,
       id: mode === 'edit' ? id : crypto.randomUUID(),
@@ -269,6 +285,30 @@ export default function CmsForm({ title, storageKey, mode }) {
                   onChange={update}
                   hint="Shown below the blog title on the website and blog listing. Separate from the SEO meta description."
                 />
+              )}
+              {!isBlog && (
+                <Field
+                  className="full-width"
+                  label="City"
+                  name="cityName"
+                  as={FormSelect}
+                  required
+                  value={form.cityName || ''}
+                  onChange={update}
+                  disabled={citiesLoading || Boolean(citiesError)}
+                  hint={
+                    citiesError
+                      ? 'Cities could not be loaded. Please refresh and try again.'
+                      : 'This route will appear on the selected city page. Add cities in Masters / Cities.'
+                  }
+                >
+                  <option value="">Select a city</option>
+                  {cities.map(city => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </Field>
               )}
               <Field
                 className="full-width"
@@ -419,6 +459,10 @@ export default function CmsForm({ title, storageKey, mode }) {
               />
             </div>
           </section>
+          <FaqEditor
+            value={form.faqs}
+            onChange={faqs => setForm(current => ({ ...current, faqs }))}
+          />
           <SerpPreview form={form} resolvedSlug={resolvedSlug} />
         </div>
         <aside className="editor-sidebar">
@@ -462,18 +506,18 @@ export default function CmsForm({ title, storageKey, mode }) {
           {form.status || 'Draft'}
         </span>
         <div className="seo-actions">
-          {isBlog && (
+          {
             <a
               className="btn btn-secondary"
-              title="View blog on website"
-              aria-label="View blog on website"
-              href={blogUrl(resolvedSlug)}
+              title={`View ${isBlog ? 'blog' : 'route page'} on website`}
+              aria-label={`View ${isBlog ? 'blog' : 'route page'} on website`}
+              href={(isBlog ? blogUrl : routeUrl)(resolvedSlug)}
               target="_blank"
               rel="noopener noreferrer"
             >
               <Eye size={18} aria-hidden="true" />
             </a>
-          )}
+          }
           <Link className="btn btn-secondary" to={base}>
             Cancel
           </Link>

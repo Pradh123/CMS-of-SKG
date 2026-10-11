@@ -43,7 +43,6 @@ import {
   optionValue,
 } from './crmShared.jsx'
 
-const MAX_FILE_BYTES = 2 * 1024 * 1024
 const LOOKUP_CACHE_MS = 10_000
 const LOOKUP_KEYS = ['vehicles', 'drivers', 'vendors', 'parties']
 const lookupCache = new Map()
@@ -299,10 +298,11 @@ export default function CrudFormPage({ config }) {
 
   const handleFile = async (field, file) => {
     if (!file) return
-    if (file.size > MAX_FILE_BYTES) {
+    const maxMb = file.type.startsWith('image/') ? 5 : 2
+    if (file.size > maxMb * 1024 * 1024) {
       setToast({
         type: 'error',
-        message: `“${file.name}” is over 2 MB. Please choose a smaller file.`,
+        message: `“${file.name}” is over ${maxMb} MB. Please choose a smaller file.`,
       })
       return
     }
@@ -678,7 +678,7 @@ function CrudField({ field, value, setValue, onFile, reading }) {
             </p>
             <p id={`${id}-help`} className="mt-1 text-xs leading-5 text-slate-500">
               {field.help ||
-                `${field.accept || (field.type === 'image' ? 'Image files' : 'Accepted files')} up to 2 MB. Saved with the backend record.`}
+                `${field.accept || (field.type === 'image' ? 'Image files' : 'Accepted files')} — images up to 5 MB, PDF up to 2 MB. Saved with the backend record.`}
             </p>
             <label
               htmlFor={id}

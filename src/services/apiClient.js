@@ -1,4 +1,4 @@
-const DEFAULT_API_URL = 'http://localhost:4000/api/v1'
+const DEFAULT_API_URL = 'https://skg-backenf.onrender.com/api/v1'
 const TOKEN_KEY = 'skg-admin-api-token'
 const runtimeEnv = import.meta.env || {}
 

@@ -1,6 +1,6 @@
 import Loading from '../../components/common/Loading.jsx'
 import { useState } from 'react'
-import { blogUrl } from '../../utils/websiteUrl.js'
+import { blogUrl, routeUrl } from '../../utils/websiteUrl.js'
 import { Eye, FileText, MapPinned, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import Pagination from '../../components/common/Pagination.jsx'
@@ -151,18 +151,18 @@ export default function CmsList({ title, storageKey }) {
                     <td className="updated-cell">{formatUpdated(record.updatedAt)}</td>
                     <td>
                       <div className="cms-row-actions">
-                        {isBlog && (
+                        {
                           <a
                             className="area-edit-btn"
-                            title="View blog on website"
-                            aria-label={`View ${record.title || 'blog'} on website`}
-                            href={blogUrl(record.slug, record.title)}
+                            title={`View ${isBlog ? 'blog' : 'route page'} on website`}
+                            aria-label={`View ${record.title || 'page'} on website`}
+                            href={(isBlog ? blogUrl : routeUrl)(record.slug, record.title)}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
                             <Eye size={16} aria-hidden="true" />
                           </a>
-                        )}
+                        }
                         {canEdit && (
                           <Link
                             className="area-edit-btn"

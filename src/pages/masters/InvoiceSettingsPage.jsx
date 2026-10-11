@@ -29,7 +29,7 @@ const emptySettings = {
 const inputClass =
   'h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-11 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100'
 const labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-600'
-const MAX_QR_IMAGE_BYTES = 2 * 1024 * 1024
+const MAX_QR_IMAGE_BYTES = 5 * 1024 * 1024
 const QR_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 
 function Field({ icon: Icon, label, children }) {
@@ -93,7 +93,7 @@ export default function InvoiceSettingsPage() {
       return
     }
     if (file.size > MAX_QR_IMAGE_BYTES) {
-      setError('QR images must be no larger than 2 MB.')
+      setError('QR images must be no larger than 5 MB.')
       event.target.value = ''
       return
     }

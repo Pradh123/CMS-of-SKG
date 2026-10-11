@@ -20,7 +20,9 @@ export const mediaApi = {
     apiRequest('/media/' + encodeURIComponent(id), { method: 'PATCH', body: metadata }),
   upload: (file, scope = '/gallery', metadata = {}) =>
     new Promise((resolve, reject) => {
-      if (file.size > 2 * 1024 * 1024) return reject(new Error('Maximum file size is 2 MB'))
+      const maxMb = file.type.startsWith('image/') ? 5 : 2
+      if (file.size > maxMb * 1024 * 1024)
+        return reject(new Error(`Maximum file size is ${maxMb} MB`))
       const reader = new FileReader()
       reader.onerror = () => reject(new Error('Unable to read file'))
       reader.onload = () =>

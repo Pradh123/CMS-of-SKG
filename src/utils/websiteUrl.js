@@ -7,3 +7,7 @@ export const WEBSITE_BASE_URL = (
 export function blogUrl(slug, title = '') {
   return `${WEBSITE_BASE_URL}/blogs/${slugify(slug || title)}`
 }
+
+export function routeUrl(slug, title = '') {
+  return `${WEBSITE_BASE_URL}/${slugify(slug || title)}`
+}

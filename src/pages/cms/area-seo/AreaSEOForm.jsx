@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Code2, FileText, Image, MapPinned, Search } from 'lucide-react'
 import Button from '../../../components/common/Button.jsx'
 import RichTextEditor from '../../../components/editor/RichTextEditor.jsx'
+import FaqEditor from '../../../components/editor/FaqEditor.jsx'
 import useCollectionRecords from '../../../hooks/useCollectionRecords.js'
 import slugify from '../../../utils/slugify.js'
 
@@ -22,6 +23,7 @@ const emptyForm = {
   introHtml: '',
   bodyHtml: '',
   faqHtml: '',
+  faqs: [],
   headScripts: '',
   bodyScripts: '',
   active: true,
@@ -312,7 +314,14 @@ export default function AreaSEOForm({ mode }) {
           onChange={update}
           hint="Main content. Generated HTML can be pasted here directly."
         />
-        <RichTextEditor label="FAQ HTML" name="faqHtml" value={form.faqHtml} onChange={update} />
+        {form.faqHtml && (
+          <RichTextEditor
+            label="Existing FAQ content"
+            name="faqHtml"
+            value={form.faqHtml}
+            onChange={update}
+          />
+        )}
       </section>
 
       <section className="seo-section">
@@ -348,6 +357,7 @@ export default function AreaSEOForm({ mode }) {
           />
         </div>
       </section>
+      <FaqEditor value={form.faqs} onChange={faqs => setForm(current => ({ ...current, faqs }))} />
       {error && (
         <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700" role="alert">
           {error}

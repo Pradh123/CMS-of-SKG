@@ -24,7 +24,7 @@ import AppToast from '../../components/common/AppToast.jsx'
 const inputClass =
   'h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-11 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100'
 const labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-600'
-const MAX_PROFILE_IMAGE_BYTES = 2 * 1024 * 1024
+const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024
 const PROFILE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
 
 export default function UserFormPage() {
@@ -57,7 +57,7 @@ export default function UserFormPage() {
       return
     }
     if (file.size > MAX_PROFILE_IMAGE_BYTES) {
-      setToast({ type: 'error', message: 'Profile images must be no larger than 2 MB.' })
+      setToast({ type: 'error', message: 'Profile images must be no larger than 5 MB.' })
       event.target.value = ''
       return
     }

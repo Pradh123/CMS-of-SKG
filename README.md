@@ -12,7 +12,7 @@ copy .env.example .env
 npm run dev
 ```
 
-The default API URL is `http://localhost:4000/api/v1`. Override `VITE_API_URL` when the
+The default API URL is `https://skg-backenf.onrender.com/api/v1`. Override `VITE_API_URL` when the
 backend is hosted elsewhere.
 
 ## Checks

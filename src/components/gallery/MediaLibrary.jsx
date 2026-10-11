@@ -73,9 +73,9 @@ export default function MediaLibrary({ onSelect, multiple = true }) {
   }, [page, refresh, search])
   const queueFiles = files => {
     if (!canUpload || uploading) return
-    const invalid = files.find(file => !TYPES.includes(file.type) || file.size > 2 * 1024 * 1024)
+    const invalid = files.find(file => !TYPES.includes(file.type) || file.size > 5 * 1024 * 1024)
     if (invalid) {
-      setError(invalid.name + ': choose a supported image up to 2 MB.')
+      setError(invalid.name + ': choose a supported image up to 5 MB.')
       return
     }
     setError('')
@@ -88,9 +88,9 @@ export default function MediaLibrary({ onSelect, multiple = true }) {
     event.preventDefault()
     const files = pending.map(item => item.file)
     if (!canUpload || uploading || !files.length) return
-    const invalid = files.find(file => !TYPES.includes(file.type) || file.size > 2 * 1024 * 1024)
+    const invalid = files.find(file => !TYPES.includes(file.type) || file.size > 5 * 1024 * 1024)
     if (invalid) {
-      setError(invalid.name + ': choose a JPG, PNG, WEBP or GIF image up to 2 MB.')
+      setError(invalid.name + ': choose a JPG, PNG, WEBP or GIF image up to 5 MB.')
       return
     }
     if (pending.some(item => !item.name.trim() || !item.alt.trim())) {
@@ -253,7 +253,7 @@ export default function MediaLibrary({ onSelect, multiple = true }) {
           <div className="media-upload-copy">
             <h3>Upload blog images</h3>
             <p>Drag and drop images here, or choose files from your device.</p>
-            <small>JPG, PNG, WEBP or GIF ? Up to 2 MB each ? Multiple images supported</small>
+            <small>JPG, PNG, WEBP or GIF ? Up to 5 MB each ? Multiple images supported</small>
           </div>
           <button
             type="button"
